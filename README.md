@@ -1,11 +1,9 @@
 <div>
-<h1 align="right">MCskyMaker (Unfinished)</h1>
+<h1>MCskyMaker (Unfinished)</h1>
 </div>
-<div align="left">
-  
-  ![icon](https://github.com/aKqir24/MCskyMaker/assets/142222025/7f334db7-d518-4a1f-bfc0-7bb719eebfe5)
-  
-</div>
+  |----------------------------------------------------------------------------------------------------------------| 
+  |  <a> ![icon](https://github.com/aKqir24/MCskyMaker/assets/142222025/287d4cee-179f-49b1-983c-1460641ba7c0) </a> |          
+  |----------------------------------------------------------------------------------------------------------------|
 <dd>Creates A Sky Overlay Pack Of Your Choosen Image And Exports It Both For Java & Bedrock.</dd>
 <ul>
   <li></li>
