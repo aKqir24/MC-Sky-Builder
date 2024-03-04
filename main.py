@@ -1,5 +1,5 @@
 import os
-import time     
+import time
 import script
 import colorama
 from colorama import Fore
@@ -39,6 +39,7 @@ class mcskyscript():
             else:
                 print(f"{Fore.RED}Error: [FileNotFoundError] Image Cannot Not Be Verfied!!")
                 time.sleep(1)
+                os.system('cls')
                 solution0 = (" - Choose The Correct File Path Of The Image. \n")
                 solution1 = (" - Make Sure The Image Has An .jpg or .bmp extension.")
                 print(f"{Fore.WHITE}Possible Solution: \n"+solution0+solution1)
@@ -70,15 +71,20 @@ class mcskyscript():
                 if ifoutnotfound == "YES":
                     os.mkdir(start0)
                     time.sleep(0.5)
+                    os.system('cls')
                 elif ifoutnotfound == "NO":
                     print("Then Please Re-enter The Ouput Folder!!")
+                    time.sleep(1)
+                    os.system('cls')
                     return mcskyscript.OutputProperties()
                 else:
-                    print("Error: Wrong Answer!!")
-                    time.sleep(0.7)
+                    print(f"{Fore.RED}Error: Wrong Answer!!{Fore.BLACK}")
                     os.system('cls')
-                    time.sleep(1)
+                    time.sleep(1.2)
                     print("The Accepted Value Are Yes & NO")
+                    time.sleep(1)
+                    os.system('cls')
+                    return mcskyscript.OutputProperties()
             try:
                 os.system('cls')
                 inpttp2 = (f"{Fore.BLACK}Choose Your Desired Resolution:\n{Fore.GREEN}")

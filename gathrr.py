@@ -1,9 +1,9 @@
 #GOD is Good All The Time 
 import os
-import time
 import glob
+import time
 import shutil
-import keyboard
+from keyboard import write
 
 tempdir = os.getenv('TEMP')
 
@@ -61,7 +61,7 @@ class program():
 
     def CubeTheSpere():
         if os.path.exists(tempdir+'\\cspr'):
-            shutil.rmtree(tempdir+'\\cspr')
+            shutil._rmtree_unsafe(tempdir+'\\cspr', next)
             shutil.copytree('cspr', tempdir+'\\cspr')
         else:
             shutil.copytree('cspr', tempdir+'\\cspr')
@@ -73,7 +73,7 @@ class program():
             # retrieve file list
             filelist=glob.glob(imgsource)
             for img in filelist:
-                 # move file with full paths as shutil.move() parameters
+                 # copy file with full paths as shutil.copy() parameters
                 shutil.copy(img,tempdir+'\\cspr\\input.jpg')       
         # Verfying Files In User's Input By Handling Exceptions
         except FileNotFoundError:
