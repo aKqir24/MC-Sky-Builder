@@ -11,12 +11,11 @@ program.makethetempdir()
 tempdir = os.getenv('temp')
 
 class mcskyscript(): 
-
-    #========================#
-    # The Program Intruduces #
-    #========================# 
-
-    # User's Image Input  
+    
+    #====================#
+    # User's Image Input # 
+    #====================#
+    
     def ImageProperties ():
         imgpath = ""
         while len(imgpath) == 0:

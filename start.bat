@@ -3,16 +3,18 @@ color f0
 cls
 echo You Might Need Some Internet To Install The Requirements
 
-
+echo Installing Requirements 0/4
+cls
+echo Installing Requirements 1/4
 pip install keyboard
 cls
-echo Installing Requirements.
+echo Installing Requirements 2/4
 pip install colorama
 cls
-echo Installing Requirements..
+echo Installing Requirements 3/4
 pip install pillow
 cls
-echo Installing Requirements...
+echo Installing Requirements 4/4
 pip install numpy
 cls
 
@@ -36,6 +38,7 @@ echo Running Program..
 cls
 echo Running Program...
 cls
+rem God Is Good All The Time :)
 echo Running Program....
 
 python mcsky.py
