@@ -12,14 +12,9 @@ tempdir = os.getenv('temp')
 
 class mcskyscript(): 
 
-    #========================================#
-      #
-    #========================================# 
-
-    def imagetocts():
-        os.system('cls')
-        print(f"This Script Was Made By {Fore.RED}Akqir{Fore.BLACK}.")
-        sleep(2)
+    #========================#
+    # The Program Intruduces #
+    #========================# 
 
     # User's Image Input  
     def ImageProperties ():

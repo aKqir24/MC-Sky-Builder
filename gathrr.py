@@ -1,6 +1,8 @@
 #GOD is Good All The Time 
 import os
 import glob
+import colorama
+from colorama import Fore
 from time import sleep
 from shutil import copytree,_rmtree_unsafe,copy
 
@@ -13,7 +15,7 @@ class program():
 #======================================#
 
     def firstlaunch():  
-        text1 = ("Hello User, Thank You For Downloading My Script!!")
+        text1 = (f"{Fore.BLACK}Hello User, Thank You For Downloading My Script!!")
         sleep(0.5)
         os.system('cls')
         print("Starting.")
@@ -37,6 +39,9 @@ class program():
         print("Done!!")
         os.system('cls')
         print (text1)
+        sleep(2)
+        os.system('cls')
+        print(f"This Script Was Made By {Fore.RED}Akqir{Fore.BLACK}.")
         sleep(3)  
 
 #===============================================#
