@@ -5,7 +5,7 @@ from gathrr import program
 # Excution Of The Program #
 #=========================#
 
-program.firstlaunch()
+#program.firstlaunch()
 mcskyscript.ImageProperties()
 mcskyscript.OutputProperties()
 exit()
