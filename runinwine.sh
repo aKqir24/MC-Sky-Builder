@@ -2,4 +2,5 @@
 "
 For Linux Enviroment You Need To Run It In Wine
 "
-wine python window.py
+if dpkg -l | grep ^ii | grep -i wine ; then
+  wine python window.py
