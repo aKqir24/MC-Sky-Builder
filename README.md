@@ -1,5 +1,5 @@
 # MC-Sky-Maker (Unfinished)
-A Program I Made That, Turns Your Image Into A Sky Overlay Pack Or Cubemap And Exports It For Both For Java & Bedrock(Windows 10 Edition) Platform.
+A Program I Made That, Turns Your Choosen Image Into A Sky Overlay Pack Or Cubemap, And Exports It For Both For Java & Bedrock(Windows 10 Edition) Platforms.
 
 ### Features
 
