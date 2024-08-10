@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# For Linux Enviroments You Need To Run This In With Wine
+# For Linux Enviroments You Need To Run This In With A Python Environment and Wine 
 Wine_Error="Error: Please install 'Wine' then install 'python' in wine."
 Wine_Fix="You Can Refer To This Ducumentation For Assistance: https://www.winehq.org/pipermail/wine-devel/2002-January/003468.html"
 
