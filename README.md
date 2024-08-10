@@ -3,7 +3,7 @@ Creates A Sky Overlay Pack Of Your Choosen Image And Exports It Both For Java & 
 
 ### Features
 
-1. Supports For Sky Packing For Java & Bedrock (.mcpack or .zip)
+1. Supports Sky Packing For Java & Bedrock (.mcpack or .zip)
 2. You Can Overide The Sky Resolution In 'Custom Resolutions' 
 4. Seperated Java, Bedrock, and Both Sky Output
 
