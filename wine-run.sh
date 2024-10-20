@@ -5,8 +5,8 @@
 ##########################################################################
 
 # Errors & Fixes Sources Strings!!
-Wine_Error="Error: Wine not installed!!"
-Python_Error="Error: Python Is Not Installed In Wine!!"
+Wine_Error="Error: Wine is not Installed!!"
+Python_Error="Error: Python is not Installed in Wine!!"
 Wine_Fix="You Can Refer To This Ducumentation For Assistance:"
 Wine_Fix_Web="https://www.winehq.org/pipermail/wine-devel/2002-January/003468.html"
 Pip_Check="Checking Dependencies [It will install them with PIP if not found]"
