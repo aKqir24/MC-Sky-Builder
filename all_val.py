@@ -17,3 +17,7 @@ rel = 'flat'
 db, b, b2, f, ab = [ "#283149","#404b69", "#333e5f", "#dbedf3", "#00818a" ]
 # place coords
 yp, x, y , yb = [ 225, 15, 3, 2 ]
+
+# output config's  
+ext, blend_width, curve_radius = [".png", 42, 2]
+

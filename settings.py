@@ -1,8 +1,7 @@
 import about
 from all_val import *
-from create import Thread
-from tkinter.ttk import OptionMenu
 from time import sleep as time_sleep
+from create import Thread, CreateCubeIMG, Image, ImageTk
 from tkinter import Toplevel, Button, Label, Scale, Checkbutton, Frame, simpledialog, messagebox, BooleanVar
 from worker import ToDoDuringStartup as resetto, SettingsMultiOptions, ConfigManagement, StringVar, filedialog, winreg, rm, path, load, _tkinter
 
@@ -49,34 +48,35 @@ class SettingsWindow:
       imgresolution.place(x=10, y=74)
 
       def outoptions():
-        selected = StringVar()
-        convertto = BooleanVar()
+        packing_zip_val = BooleanVar()
+        packing_mcpack_val = BooleanVar()
         com = Frame(settingswindow, height=40, width=140, bg=db)
-        output_list = ["Bedrock", "Java", "Both"]
-        outopmen = OptionMenu(settingswindow, selected, output_list[0], *output_list)
-        outopmen.pack()
-        selected.set("Select Output")
-        packmcpackch = Checkbutton( com, variable=convertto, bg=db, fg=b2, bd=0,
-                                    activebackground=db, padx=-17, activeforeground=b2, relief=rel )
         com.place(x=242, y=65)
-        packmcpackch.place(x=1)
+        packing_zip_ch = Checkbutton( com, variable=packing_zip_val, bg=db, fg=b2, bd=0,
+                                    activebackground=db, padx=-17, activeforeground=b2, relief=rel )
+        
+        packing_mcpack_ch = Checkbutton( com, variable=packing_mcpack_val, bg=db, fg=b2, bd=0,
+                                    activebackground=db, padx=-17, activeforeground=b2, relief=rel )
+         
+        packing_mcpack_ch.place(x=1)
+        packing_zip_ch.place(x=1, y=22)
   
         with open(config_dir,'r') as readconfig:
           readusingjson =  load(readconfig)
-          the_convert_val = readusingjson['Convert_To_Zip']
-          #the_mcpacker = readusingjson['Convert_To_Mcpack']
-          #if the_zippacker == False: packing_sky_zip.deselect()
-          #elif the_zippacker == True: packing_sky_zip.select()
-          #if the_mcpacker == False: packing_sky_mcpack.deselect()
-          #elif the_mcpacker == True: packing_sky_mcpack.select()
+          the_zippacker = readusingjson['Convert_To_Zip']
+          the_mcpacker = readusingjson['Convert_To_Mcpack']
+          if the_zippacker == False: packing_zip_ch.deselect()
+          elif the_zippacker == True: packing_zip_ch.select()
+          if the_mcpacker == False: packing_mcpack_ch.deselect()
+          elif the_mcpacker == True: packing_mcpack_ch.select()
 
         def optionlabels():
           output_path_bg = Frame(settingswindow, bg=b, height=26, width=305, bd=0.5 )
           outputfolderlabel = Label(settingswindow, bg=b, fg=f, pady=3, padx=5 )
+          Label(com, text="Convert Into .zip",  bg=db, fg=f, bd=0).place(x=22, y=23)
           Label(com, text="Convert Into .mcpack", bg=db, fg=f, bd=0).place(x=22, y=2)
           Label(settingswindow, text="Output Folder", bg=db, fg=f, pady= 1, bd=0).place(x=12, y=5)
           Label(settingswindow, text="Image Size", bg=db, fg=f, pady= 1, bd=0).place(x=168/3-5, y=55)
-         # Label(checkbutton_packer, text="Convert Into .zip",  bg=db, fg=f, bd=0).place(x=22, y=22)
           output_path_bg.place(x=77, y= 25)
           outputfolderlabel.place(x=77, y= 25)
       
@@ -87,8 +87,8 @@ class SettingsWindow:
               for index in range(0, len(the_outputfolder_path), 1000):
                 outputfolderlabel.config(text=the_outputfolder_path[index:index+49]+"...")
 
-          user_options = SettingsMultiOptions(imgresolution, packmcpackval)
-          settingbuttons = SettingsOptionsButtons(settingswindow, outputfolderlabel, user_options, imgresolution, packzipch, packmcpackch)
+          user_options = SettingsMultiOptions(imgresolution, packing_zip_val, packing_mcpack_val)
+          settingbuttons = SettingsOptionsButtons(settingswindow, outputfolderlabel, user_options, imgresolution, packing_zip_ch, packing_mcpack_ch)
 
           def optionbuttons():
             Button(settingswindow, command=settingbuttons.ask_output_folder, text="CHANGE", relief=rel, 

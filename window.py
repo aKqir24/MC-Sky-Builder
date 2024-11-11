@@ -1,13 +1,12 @@
  # At First I will GOD is Good All The Time :) #
-import create
 from all_val import *
 from tkinter import Tk, Button
 from tkinter.ttk import Progressbar
 from subprocess import Popen as showfolder
-from worker import filedialog, Toplevel, Label, StringVar
-from settings import SettingsWindow, Frame, BooleanVar, load, resetto, _tkinter
+from worker import GetImageDetails, filedialog, Toplevel, Label, StringVar
+from settings import SettingsWindow, Frame, BooleanVar, Thread, Image, ImageTk, CreateCubeIMG, load, resetto, _tkinter
 
-resetto().makethetempdir().setdefaults()
+resetto().makethetempdir().setdefaults().installfonts()
 
 # mainwindow ( Main Window Of The Program )
 mainwindow = Tk()
@@ -39,8 +38,8 @@ class ButtonsCommands:
         GetImageDetails(the_imagefolder_path).getimagename()
         for index in range(0, len(the_imagefolder_path), 1000):
           Imageinput.config(text="Image Folder : "+the_imagefolder_path[index:index+45]+"...")
-          with create.Image.open(the_imagefolder_path).resize((368,218)) as intputimg:
-            chosen_img = create.ImageTk.PhotoImage(intputimg)
+          with Image.open(the_imagefolder_path).resize((368,218)) as intputimg:
+            chosen_img = ImageTk.PhotoImage(intputimg)
             Imageprev.config(image=chosen_img, height= 210, width= 346)
           mainwindow.mainloop()
 
@@ -56,19 +55,13 @@ class ButtonsCommands:
       create_process = Progressbar(progresswindow, length=338)
       Label(progresswindow, bg='#283149', textvariable=percentage, fg=f).place(x=380/2-15, y=50)
       create_process.place(x=20, y=20)
-      processcubeimg = create.CreateCubeIMG(progresswindow, create_process, percentage)
+      processcubeimg = CreateCubeIMG(progresswindow, create_process, percentage)
+      Thread(target=processcubeimg.getcreatesky).start()
+      Thread(target=processcubeimg.loadingtitle).start()
       progresswindow.wait_window()
-      createSKY.config(command=ButtonsCommands.goto_output_folder)
+      createSKY.config(command=ButtonsCommands.launch_create_sky)
     except IndexError: processcubeimg.getimageError()
     except _tkinter.TclError: pass
-
-    def CreateThreads(create):
-      getcreatesky = create.Thread(target=processcubeimg.getcreatesky)
-      loadingtitle = create.Thread(target=processcubeimg.loadingtitle)
-      loadingtitle.start()
-      getcreatesky.start()
-
-    return CreateThreads(create)
 
   def goto_output_folder():
     with open(config_dir, 'r') as readconfig:
@@ -79,6 +72,7 @@ class ButtonsCommands:
 
 # mainwindow ( Oparating Buttons )
 Button( mainwindow, text="OPEN", font=font_details[1], bg=ab, fg=f, activebackground=f, padx=x, pady=y, bd= yb,
+
         activeforeground=ab, relief='flat', command=ButtonsCommands.ask_image_folder ).place( x=10, y=yp )
 Button( mainwindow, text="FOLDER", font=font_details[1], bg=ab, fg=f, activebackground = f, activeforeground=ab, 
         padx=x, pady=y, relief='flat', command = ButtonsCommands.goto_output_folder, bd= yb ).place( x=89, y=yp )

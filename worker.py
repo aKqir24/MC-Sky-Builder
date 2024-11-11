@@ -15,7 +15,7 @@ from shutil import copytree, copy, rmtree
 from uuid import uuid4 as generate_random_uuid
 from os import path, remove as rm, mkdir, rename
 from tkinter import filedialog, Toplevel, Label, StringVar, messagebox, _tkinter
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageOps
 
 class GetImageDetails:
   def __init__(self, imgpath):
@@ -43,6 +43,7 @@ class GetImageDetails:
     imgext = Image.open(self.imgpath).format
     theimgext = "."+imgext.lower()
     image_details.append(theimgext)
+    print(image_details[0])
     return theimgext
 
 class ToDoDuringStartup:
@@ -69,13 +70,20 @@ class ToDoDuringStartup:
                 "Convert_To_Mcpack": False, "Outputfolder_Path": userdesktop }
           readusingjson = dump(configuration, writeconfig, indent=4)
     return self
+  
+  def installfonts(self):
+    font_dir = "C:\\windows\\Fonts\\NotoSans-Regular.ttf"
+    if path.exists(font_dir): pass
+    else: passcopy('res\\NotoSans-Regular.ttf', font_dir)
+    return self
 
 class ConfigManagement:
-  config_dict = {"image_res": 256, "ch_convert": True}
+  config_dict = {"image_res": 256, "mc_convert": True, "jv_convert": True}
   
   # Get the config value then update to a dict{}
   ImgResConfigValue = lambda self, imgresvalue : self.config_dict.update({'image_res': imgresvalue})
-  CnvrtToMcpackValue = lambda self, chmcpackval: self.config_dict.update({'ch_convert': chmcpackval})
+  CnvrtToMcpackValue = lambda self, chmcpackval: self.config_dict.update({'mc_convert': chmcpackval}) 
+  CnvrtToJavZipValue = lambda self, chjvzipval: self.config_dict.update({'jv_convert': chjvzipval})
   OutPathConfigValue = lambda self, outpathvalue: self.config_dict.update({'output_path': outpathvalue})
   CustomImgResConfigValue = lambda self, imgresvalue: self.config_dict.update({'image_custom_res': imgresvalue})
     
@@ -93,8 +101,10 @@ class ConfigManagement:
       except KeyError: chosen_res = readusingjson['Image_Size']
     else: chosen_res = config_dict['image_custom_res']
 
-    getchconmcpack = config_dict.get('ch_convert"')
-    if getchconjavzip == None: getchconjavzip = readusingjson['Convert_Pack']
+    getchconmcpack = config_dict.get('mc_convert')
+    getchconjavzip = config_dict.get('jv_convert')
+    if getchconjavzip == None: getchconjavzip = readusingjson['Convert_To_Zip']
+    if getchconmcpack == None: getchconmcpack = readusingjson['Convert_To_Mcpack']
 
     with open(config_dir, 'w') as writeconfig:
       configuration = { "Image_Size": chosen_res, "Convert_To_Zip": getchconjavzip,
