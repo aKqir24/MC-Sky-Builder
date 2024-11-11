@@ -12,7 +12,7 @@ Wine_Fix_Web="https://www.winehq.org/pipermail/wine-devel/2002-January/003468.ht
 Pip_Check="Checking Dependencies [It will install them with PIP if not found]"
 Pip_Error="Please Connect To The Internet To Install The Dependencies"
 
-depend=("wine" "python" "numpy" "pillow" "opencv-python")
+depend=("wine" "python" "numpy" "pillow")
 
 # Checks If Wine & Python Is Installed 
 function check_depend {	
@@ -33,7 +33,7 @@ function check_depend {
 # Checks & Installs The Python Dependencies
 function check_py_depend {
   clear ; echo $Pip_Check ; sleep 1
-  for package in {2..4}; do
+  for package in {2..3}; do
     clear ; echo "Checking '${depend[$package]}'..." ; sleep 2
     if wine pip install ${depend[$package]} ; then
        clear ; echo "'${depend[$package]}' is Installed" ; sleep 2 ; clear

@@ -74,9 +74,9 @@ class SettingsWindow:
           output_path_bg = Frame(settingswindow, bg=b, height=26, width=305, bd=0.5 )
           outputfolderlabel = Label(settingswindow, bg=b, fg=f, pady=3, padx=5 )
           Label(com, text="Convert Into .zip",  bg=db, fg=f, bd=0).place(x=22, y=23)
-          Label(com, text="Convert Into .mcpack", bg=db, fg=f, bd=0).place(x=22, y=2)
+          Label(com, text="Convert Into .mcpack", bg=db, fg=f, bd=0).place(x=22, y=1)
           Label(settingswindow, text="Output Folder", bg=db, fg=f, pady= 1, bd=0).place(x=12, y=5)
-          Label(settingswindow, text="Image Size", bg=db, fg=f, pady= 1, bd=0).place(x=168/3-5, y=55)
+          Label(settingswindow, text="Sky Resolution", bg=db, fg=f, pady= 1, bd=0).place(x=168/3-12, y=55)
           output_path_bg.place(x=77, y= 25)
           outputfolderlabel.place(x=77, y= 25)
       
