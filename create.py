@@ -9,7 +9,7 @@ from json import load, dump
 from threading import Thread
 from math import pi,sin,cos,tan,atan2,hypot,floor
 from numpy import clip, hstack, array, concatenate
-from worker import MkJsonPackDetailsFile, Image, ImageTk, ImageOps, _tkinter, messagebox,  tempdir, config_dir, image_details, ext, blend_width, curve_radius
+from worker import MkJsonPackDetailsFile, Image, ImageTk, ImageOps, _tkinter, messagebox,  tempdir, config_dir, image_details, ext, blend_width, curve_radius, readcurrentconfig
      
 class CreateCubeIMG:
   def __init__(self, progresswindow, create_process, percentage):
@@ -76,24 +76,19 @@ class CreateCubeIMG:
            ["", "", "Top", ""],
            ["Front", "Right", "Back", "Left"],
            ["", "", "Bottom", ""]]
-      
-      with open(config_dir, 'r') as readconfig:
-        readusingjson = load(readconfig)
-        img_res = readusingjson['Image_Size']
-        out_path = readusingjson['Outputfolder_Path']
-        width, height = imgOut.size
-        cube_size = width/4
-        for row in range(3):
-          for col in range(4):
-            progress_value = progress_value+col-1
-            current_progress = progress_value
-            if name_map[row][col] != "":
-              sx = cube_size * col
-              sy = cube_size * row
-              fn = name_map[row][col] + '.png'
-              imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
-              self.create_process.config(value=current_progress)
-              self.percentage.set(str(int(current_progress))+"%")
+
+      width, height = imgOut.size 
+      img_res, out_path = [(readcurrentconfig()[0]), (readcurrentconfig()[1])]
+      cube_size = width/4
+      for row in range(3):
+        for col in range(4):
+          progress_value = progress_value+col-1
+          current_progress = progress_value
+          if name_map[row][col] != "":
+            sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
+            imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
+            self.create_process.config(value=current_progress)
+            self.percentage.set(str(int(current_progress))+"%")
         CreateCubeIMG.mergeskyedges(correct_position).save(tempdir+'combined.png')
     except IndexError: CreateCubeIMG.getimageError(self)
     except _tkinter.TclError: pass

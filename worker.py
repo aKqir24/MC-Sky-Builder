@@ -10,7 +10,6 @@
 
 import winreg
 from all_val import *
-from json import dump, load
 from shutil import copytree, copy, rmtree
 from uuid import uuid4 as generate_random_uuid
 from os import path, remove as rm, mkdir, rename
@@ -62,11 +61,10 @@ class ToDoDuringStartup:
   def setdefaults(self):
     if path.exists(config_dir):pass
     else:
-      chosen_res = "256"
       with winreg.OpenKey(winreg.HKEY_CURRENT_USER, dsktp_regkey) as key:
         userdesktop = path.expandvars( winreg.QueryValueEx(key, "Desktop")[0] ).replace("\\", "/")
         with open(config_dir, 'w') as writeconfig:
-          configuration = { "Image_Size": chosen_res, "Convert_To_Zip": False, 
+          configuration = { "Image_Size": "256", "Convert_To_Zip": False, 
                 "Convert_To_Mcpack": False, "Outputfolder_Path": userdesktop }
           readusingjson = dump(configuration, writeconfig, indent=4)
     return self
@@ -77,34 +75,30 @@ class ToDoDuringStartup:
     else: passcopy('res\\NotoSans-Regular.ttf', font_dir)
     return self
 
-class ConfigManagement:
-  config_dict = {"image_res": 256, "mc_convert": True, "jv_convert": True}
-  
+class ConfigManagement: 
   # Get the config value then update to a dict{}
-  ImgResConfigValue = lambda self, imgresvalue : self.config_dict.update({'image_res': imgresvalue})
-  CnvrtToMcpackValue = lambda self, chmcpackval: self.config_dict.update({'mc_convert': chmcpackval}) 
-  CnvrtToJavZipValue = lambda self, chjvzipval: self.config_dict.update({'jv_convert': chjvzipval})
-  OutPathConfigValue = lambda self, outpathvalue: self.config_dict.update({'output_path': outpathvalue})
-  CustomImgResConfigValue = lambda self, imgresvalue: self.config_dict.update({'image_custom_res': imgresvalue})
+  ImgResConfigValue = lambda self, imgresvalue : config_dict.update({'image_res': imgresvalue})
+  CnvrtToMcpackValue = lambda self, chmcpackval: config_dict.update({'mc_convert': chmcpackval}) 
+  CnvrtToJavZipValue = lambda self, chjvzipval: config_dict.update({'jv_convert': chjvzipval})
+  OutPathConfigValue = lambda self, outpathvalue: config_dict.update({'output_path': outpathvalue})
+  CustomImgResConfigValue = lambda self, imgresvalue: config_dict.update({'image_custom_res': imgresvalue})
     
   def writesettingsconfig(self):
-    readconfig = open(config_dir, 'r')
-    readusingjson = load(readconfig)
-    config_dict = self.config_dict
+    readconfig = readcurrentconfig()
     try:
-      if config_dict['output_path'] == "":
-        userpath = readusingjson['Outputfolder_Path']
+      if config_dict['output_path'] == "": 
+        userpath = readconfig[1]
       else: userpath = config_dict['output_path']
-    except KeyError: userpath = readusingjson['Outputfolder_Path']
+    except KeyError: userpath = readconfig[1]
     if config_dict.get('image_custom_res') == None:
       try: chosen_res = config_dict['image_res']
-      except KeyError: chosen_res = readusingjson['Image_Size']
+      except KeyError: chosen_res = readconfig[0]
     else: chosen_res = config_dict['image_custom_res']
 
     getchconmcpack = config_dict.get('mc_convert')
     getchconjavzip = config_dict.get('jv_convert')
-    if getchconjavzip == None: getchconjavzip = readusingjson['Convert_To_Zip']
-    if getchconmcpack == None: getchconmcpack = readusingjson['Convert_To_Mcpack']
+    if getchconjavzip == None: getchconjavzip = readconfig[2]
+    if getchconmcpack == None: getchconmcpack = readconfig[3]
 
     with open(config_dir, 'w') as writeconfig:
       configuration = { "Image_Size": chosen_res, "Convert_To_Zip": getchconjavzip,

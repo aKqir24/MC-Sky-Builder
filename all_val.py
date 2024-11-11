@@ -5,6 +5,7 @@
 """ 
 
 from os import getenv
+from json import dump, load
 
 dsktp_regkey = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
 font_details = [('Noto Sans',8,'normal'), ('Segoe UI',10,'normal')] 
@@ -18,6 +19,18 @@ db, b, b2, f, ab = [ "#283149","#404b69", "#333e5f", "#dbedf3", "#00818a" ]
 # place coords
 yp, x, y , yb = [ 225, 15, 3, 2 ]
 
-# output config's  
+# output configuration 
 ext, blend_width, curve_radius = [".png", 42, 2]
 
+# current config's
+def readcurrentconfig():
+  readconfig = open(config_dir, 'r')
+  readusingjson = load(readconfig)
+  img_res = readusingjson['Image_Size']
+  out_path = readusingjson['Outputfolder_Path']
+  zip_pack_ch = readusingjson['Convert_To_Zip']
+  mc_pack_ch = readusingjson['Convert_To_Mcpack']
+  return [img_res, out_path, zip_pack_ch, mc_pack_ch]
+
+# default configuration
+config_dict = {"image_res": 256, "mc_convert": False, "jv_convert": False}
