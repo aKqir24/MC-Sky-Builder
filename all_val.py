@@ -23,7 +23,7 @@ yp, x, y , yb = [ 225, 15, 3, 2 ]
 ext, blend_width, curve_radius = [".png", 42, 2]
 
 # current config's
-def readcurrentconfig():
+def readconfig():
   readconfig = open(config_dir, 'r')
   readusingjson = load(readconfig)
   img_res = readusingjson['Image_Size']

@@ -14,7 +14,7 @@ from shutil import copytree, copy, rmtree
 from uuid import uuid4 as generate_random_uuid
 from os import path, remove as rm, mkdir, rename
 from tkinter import filedialog, Toplevel, Label, StringVar, messagebox, _tkinter
-from PIL import Image, ImageTk, ImageOps
+from PIL import Image, ImageTk
 
 class GetImageDetails:
   def __init__(self, imgpath):
@@ -83,22 +83,21 @@ class ConfigManagement:
   OutPathConfigValue = lambda self, outpathvalue: config_dict.update({'output_path': outpathvalue})
   CustomImgResConfigValue = lambda self, imgresvalue: config_dict.update({'image_custom_res': imgresvalue})
     
-  def writesettingsconfig(self):
-    readconfig = readcurrentconfig()
+  def writesettingsconfig(self): 
     try:
       if config_dict['output_path'] == "": 
-        userpath = readconfig[1]
+        userpath = readconfig()[1]
       else: userpath = config_dict['output_path']
-    except KeyError: userpath = readconfig[1]
+    except KeyError: userpath = readconfig()[1]
     if config_dict.get('image_custom_res') == None:
       try: chosen_res = config_dict['image_res']
-      except KeyError: chosen_res = readconfig[0]
+      except KeyError: chosen_res = readconfig()[0]
     else: chosen_res = config_dict['image_custom_res']
 
     getchconmcpack = config_dict.get('mc_convert')
     getchconjavzip = config_dict.get('jv_convert')
-    if getchconjavzip == None: getchconjavzip = readconfig[2]
-    if getchconmcpack == None: getchconmcpack = readconfig[3]
+    if getchconjavzip == None: getchconjavzip = readconfig()[2]
+    if getchconmcpack == None: getchconmcpack = readconfig()[3]
 
     with open(config_dir, 'w') as writeconfig:
       configuration = { "Image_Size": chosen_res, "Convert_To_Zip": getchconjavzip,
@@ -158,7 +157,14 @@ class MkJsonPackDetailsFile:
       pass
 
 class ZipMcpackOrBoth:
-  def PackToZip():
+  def CheckAndPack(self):
+    if readconfig()[2] == True: self.PackToZip()
+    if readconfig()[3] == True: self.PackToMcpack()
+    
+
+  def PackToZip(self):
+    print("ZIP")
     pass
-  def PackToMcpack():
+  def PackToMcpack(self):
+    print("MCPACK")
     pass

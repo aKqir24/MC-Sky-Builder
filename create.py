@@ -4,12 +4,12 @@
 
 from __future__ import print_function
 import sys
+from all_val import *
 from time import sleep
-from json import load, dump
 from threading import Thread
 from math import pi,sin,cos,tan,atan2,hypot,floor
 from numpy import clip, hstack, array, concatenate
-from worker import MkJsonPackDetailsFile, Image, ImageTk, ImageOps, _tkinter, messagebox,  tempdir, config_dir, image_details, ext, blend_width, curve_radius, readcurrentconfig
+from worker import MkJsonPackDetailsFile, ZipMcpackOrBoth, Image, ImageTk, _tkinter, messagebox
      
 class CreateCubeIMG:
   def __init__(self, progresswindow, create_process, percentage):
@@ -27,8 +27,9 @@ class CreateCubeIMG:
         for tlno in range(0, 7):
           sleep(1)
           titlemsg = ("Building Sky")
-          titleldng = [ " ",".","."*2,"."*3, "."*3, "."*2, "." ]
-          self.progresswindow.title(titlemsg+titleldng[0+tlno])   
+          titledot = [ " ",".","."*2,"."*3, "."*3, "."*2, "." ]
+          self.progresswindow.title(titlemsg+titledot[0+tlno])
+    except _tkinter.TclError: pass
     except RuntimeError: pass
     except ValueError: pass
   
@@ -70,7 +71,7 @@ class CreateCubeIMG:
       elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv,correct_position = [0.0225, 3]
       else: pv, correct_position= [0.045, 2]
       createcube = ConvertDetails( imgIn, imgOut, self.progresswindow, self.create_process, self.percentage, pv)
-      progress_value = createcube.convertBack()
+      progress_value, packsky = [(createcube.convertBack()),(ZipMcpackOrBoth().CheckAndPack())]
       
       name_map = [ \
            ["", "", "Top", ""],
@@ -78,8 +79,7 @@ class CreateCubeIMG:
            ["", "", "Bottom", ""]]
 
       width, height = imgOut.size 
-      img_res, out_path = [(readcurrentconfig()[0]), (readcurrentconfig()[1])]
-      cube_size = width/4
+      img_res, out_path, cube_size = [(readconfig()[0]), (readconfig()[1]), (width/4)]
       for row in range(3):
         for col in range(4):
           progress_value = progress_value+col-1
@@ -93,6 +93,9 @@ class CreateCubeIMG:
     except IndexError: CreateCubeIMG.getimageError(self)
     except _tkinter.TclError: pass
 
+    def cropmergedimage(self):
+      pass
+
 class ConvertDetails(CreateCubeIMG):
     def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage, pv):
       super().__init__(progresswindow, create_process, percentage)
@@ -102,12 +105,12 @@ class ConvertDetails(CreateCubeIMG):
 
     def outImgToXYZ(i,j,face,edge):
       a, b = [(2.0*float(i)/edge), (2.0*float(j)/edge)]
-      if face==0: (x,y,z) = (-1.0, 1.0-a, 3.0 - b) # back
-      elif face==1: (x,y,z) = (a-3.0, -1.0, 3.0 - b) # left
+      if face==0: (x,y,z) = (-1.0, 1.0-a, 3.0 - b)    # back
+      elif face==1: (x,y,z) = (a-3.0, -1.0, 3.0 - b)  # left
       elif face==2: (x,y,z) = (1.0, a - 5.0, 3.0 - b) # front
-      elif face==3: (x,y,z) = (7.0-a, 1.0, 3.0 - b) # right
-      elif face==4: (x,y,z) = (b-1.0, a -5.0, 1.0)# top
-      elif face==5: (x,y,z) = (5.0-b, a-5.0, -1.0) # bottom
+      elif face==3: (x,y,z) = (7.0-a, 1.0, 3.0 - b)   # right
+      elif face==4: (x,y,z) = (b-1.0, a -5.0, 1.0)    # top
+      elif face==5: (x,y,z) = (5.0-b, a-5.0, -1.0)    # bottom
       return (x,y,z)
 
     def convertBack(self):
@@ -125,23 +128,19 @@ class ConvertDetails(CreateCubeIMG):
         if face==2: rng = range(0,int(edge*3))
         else: rng = range(int(edge), int(edge) * 2)
         for j in rng:
-          if j<edge: face2 = 4 # top
+          if j<edge: face2 = 4      # top
           elif j>=2*edge: face2 = 5 # bottom
           else: face2 = face
           (x,y,z) = ConvertDetails.outImgToXYZ(i,j,face2,edge)
-          theta = atan2(y,x) # range -pi to pi
-          r = hypot(x,y)
-          phi = atan2(z,r) # range -pi/2 to pi/2
+          theta, r = [(atan2(y,x)), (hypot(x,y))] # range -pi to pi
+          phi = atan2(z,r)                        # range -pi/2 to pi/2
           # source img coords
           uf = ( 2*edge*(theta + pi)/pi )
           vf = ( 2.14*edge * (pi/1.869 - phi)/pi)
           # Use bilinear interpolation between the four surrounding pixels
-          ui = floor(uf)  # coord of pixel to bottom left
-          vi = floor(vf)
-          u2 = ui+1       # coords of pixel to top right
-          v2 = vi+1       
-          mu = uf-ui      # fraction of way across pixel
-          nu = vf-vi
+          ui, vi = [(floor(uf)),(floor(vf))] # coord of pixel to bottom left
+          u2, v2 = [(ui+1),(vi+1)]            # coords of pixel to top right     
+          mu, nu = [(uf-ui), (vf-vi)]         # fraction of way across pixel
           A = inPix[ui % inSize[0],int(clip(vi,0,inSize[1]-1))]
           B = inPix[u2 % inSize[0],int(clip(vi,0,inSize[1]-1))]
           C = inPix[ui % inSize[0],int(clip(v2,0,inSize[1]-1))]
