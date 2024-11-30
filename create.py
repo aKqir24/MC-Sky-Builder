@@ -61,16 +61,20 @@ class CreateCubeIMG:
     messagebox.showerror( title="Error_2", message=errormessage)
       
   def getcreatesky(self):
-    def cropmergedimage():
+    def cropmergedimage(old_names):
       # Crop coordinates for three equal parts
       merged_image = Image.open(tempdir+'combined.png')
       coords = [
         (0, 0, img_res, img_res),             
         (0, img_res, img_res, img_res * 2),    
         (0, img_res * 2, img_res, img_res * 3) ]
+      
       for i ,croped_coords in enumerate(coords):
+        print(str(i))
+        if i == 1 : i = 7 
+        if i == 2 : i = 1
         cropped_img = merged_image.crop(croped_coords)
-        cropped_img.save(f"Merged_{i + 1}.png")
+        cropped_img.save(old_names[i+5])
     try:
       self.progresswindow.focus_set()
       imgIn = Image.open(image_details[0]) 
@@ -96,10 +100,11 @@ class CreateCubeIMG:
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
       CreateCubeIMG.mergeskyedges(correct_position).save(tempdir+'combined.png')
-      packsky().ZipMcpackOrBoth().MoveToOut()
+      packsky().ZipMcpackOrBoth()
+      old_names = packsky().MoveToOut()
     except IndexError: CreateCubeIMG.getimageError(self)
     except _tkinter.TclError: pass
-    return cropmergedimage()
+    return cropmergedimage(old_names)
 
 class ConvertDetails(CreateCubeIMG):
     def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage, pv):

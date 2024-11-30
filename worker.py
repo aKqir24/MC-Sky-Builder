@@ -136,7 +136,7 @@ class MkJsonPackDetailsFile:
     uuid1 = generate_random_uuid()
     uuid2 = generate_random_uuid()
     # For Bedrock Write The Manifest File 
-    with open(tempdir+image_details[2]+'manifest.json', 'w') as writejson:
+    with open(tempdir+image_details[2]+"\\"+'manifest.json', 'w') as writejson:
       manifestfile =  { "format_version": 1, "header": { 
                         "description": MkJsonPackDetailsFile.pack_des,
                         "name": image_details[2]+" (Sky Overlay)", "uuid": str(uuid1), 
@@ -145,7 +145,7 @@ class MkJsonPackDetailsFile:
       dump(manifestfile, writejson, sort_keys=True, skipkeys=1, indent=3)
     
   def makethepackmeta():
-    with open(tempdir+image_details[2]+'pack.json', 'w') as writepckmeta:
+    with open(tempdir+image_details[2]+"\\"+'pack.json', 'w') as writepckmeta:
       pack_des = FileManagement.pack_des.replace("§c", "").replace("§b", "").replace("§f", "")
       packmeta = { "pack": { "pack_format": 1, "description": pack_des } }
       dump(packmeta, writepckmeta, sort_keys=True, skipkeys=1, indent=3)
@@ -160,18 +160,18 @@ class PackingPack:
     old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Bottom.png",  "Top.png"]
     new_names = ["cubemap_0.png", "cubemap_1.png", "cubemap_2.png", "cubemap_3.png", "cubemap_4.png", "cubemap_5.png"]
     #MkJsonPackDetailsFile.packrenamer(old_names, new_names)
-    return self
+    return old_names
 
   def ZipMcpackOrBoth(self):
     if readconfig()[2] == True: 
-      path = image_details[2]+"\\textures\\environment\\overworld_cubemap"
+      path = image_details[2]+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
       makedirs(tempdir+path)
       copy(tempdir+"\\"+sky_names, tempdir+path)
       print("Converting to Zip (Java Option!!)...")
       MkJsonPackDetailsFile.makethepackmeta()
 
     if readconfig()[3] == True: 
-      path = image_details[2]+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
+      path = image_details[2]+"\\textures\\environment\\overworld_cubemap"
       makedirs(tempdir+path)
       print("Converting to Mcpack (Bedrock Option!!)...")
       MkJsonPackDetailsFile.makethemanifest()
