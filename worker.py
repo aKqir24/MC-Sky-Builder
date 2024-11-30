@@ -10,10 +10,11 @@
 
 import winreg
 from all_val import *
-from shutil import copytree, copy, move, rmtree
-from uuid import uuid4 as generate_random_uuid 
-from tkinter import filedialog, Toplevel, Label, StringVar, messagebox, _tkinter
 from PIL import Image, ImageTk
+from uuid import uuid4 as generate_random_uuid 
+from shutil import copytree, copy, move, rmtree, make_archive
+from tkinter import filedialog, Toplevel, Label, StringVar, messagebox, _tkinter
+
 
 class GetImageDetails:
   def __init__(self, imgpath):
@@ -27,7 +28,7 @@ class GetImageDetails:
     getimgpath = rmpackex
     imgpathfori = getimgpath+" "
     while getimgpath[:-default_index].startswith('/') == False:
-      cl= default_index+1
+      cl = default_index+1
       default_index = cl
       rmdirtxt = (imgpathfori[:-default_index])
       if rmdirtxt.endswith('/') == True:
@@ -97,11 +98,8 @@ class ConfigManagement:
     if getchconjavzip == None: getchconjavzip = readconfig()[2]
     if getchconmcpack == None: getchconmcpack = readconfig()[3]
 
-    with open(config_dir, 'w') as writeconfig:
-      configuration = { "Image_Size": chosen_res, "Convert_To_Zip": getchconjavzip,
-                        "Convert_To_Mcpack": getchconmcpack, "Outputfolder_Path": userpath }
-      readusingjson = dump(configuration, writeconfig, indent=4)
-      config_dict.clear()
+    writeconfig(chosen_res, getchconjavzip, getchconmcpack, userpath)
+    config_dict.clear()
   
 class SettingsMultiOptions:
     def __init__(self, imgresolution, packzipval, packmcpackval ):
@@ -154,30 +152,48 @@ class MkJsonPackDetailsFile:
     pass
 
 class PackingPack:
-  def MoveToOut(self):
-    print("Moving Sky To Pack Folder...")
-    old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Bottom.png",  "Top.png"]
-    new_names = ["cubemap_0.png", "cubemap_1.png", "cubemap_2.png", "cubemap_3.png", "cubemap_4.png", "cubemap_5.png"]
-    path = self.ZipMcpackOrBoth()
-    for move_no in range (0, 6): 
-      sky_names = [old_names[move_no], new_names[move_no]]
-      for path_index, path_folder in enumerate(path):
-        copy(tempdir+sky_names[0], tempdir+path_folder+"\\"+sky_names[1])
-    return old_names
+  old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Bottom.png",  "Top.png"]
+  new_names = ["cubemap_0.png", "cubemap_1.png", "cubemap_2.png", "cubemap_3.png", "cubemap_4.png", "cubemap_5.png"]
 
-  def ZipMcpackOrBoth(self):
-    path_mcpack = ""
-    path_zip = ""
+  def MoveToOut(self, pack_name):
+    print("Moving Sky To Pack Folder...")
+    path_finished = tempdir+pack_name+"\\"
+    output_path = readconfig()[1].replace("/", "\\")+"\\"+pack_name
+    make_archive(output_path, 'zip', path.dirname(path_finished))
+    if pack_name.endswith(".zip") == True: rename(output_path+".zip", output_path.replace(".zip", "", 0))
+    else: rename(output_path+".zip", output_path.replace(".zip", ""))
+    return self
+  
+  def CleanUp(self):
+    print("Cleaning Up '%TEMP%' files")
+    return self
+
+  def ZipMcpackOrBoth(self, mergejavasky):
     if readconfig()[2] == True: 
-      path_zip = image_details[2]+".zip"+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
-      makedirs(tempdir+path_zip)
+      zip_folder = image_details[2]+".zip"
+      path_zip = zip_folder+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
       print("Converting to Zip (Java Option!!)...")
+      makedirs(tempdir+path_zip)
       MkJsonPackDetailsFile.makethepackmeta()
+      mergejavasky.save(tempdir+path_zip+'\\'+'cloud1.png')
+      for mv_i in range(1,9):
+        if mv_i == 5: pass
+        else: 
+          sky_properties = "sky"+str(mv_i)+".properties"
+          copy("res\\mcpatcher\\sky\\world0\\"+sky_properties, tempdir+path_zip+"\\"+sky_properties)
+      self.MoveToOut(zip_folder)
 
     if readconfig()[3] == True: 
-      path_mcpack = image_details[2]+".mcpack"+"\\textures\\environment\\overworld_cubemap"
-      makedirs(tempdir+path_mcpack)
+      mcpack_folder = image_details[2]+".mcpack"
+      path_mcpack = mcpack_folder+"\\textures\\environment\\overworld_cubemap"
       print("Converting to Mcpack (Bedrock Option!!)...")
+      makedirs(tempdir+path_mcpack)
       MkJsonPackDetailsFile.makethemanifest()
-      
-    return [path_zip, path_mcpack]
+      for move_no in range (0, 6): 
+        sky_names = [self.old_names[move_no], self.new_names[move_no]]
+        copy(tempdir+sky_names[0], tempdir+path_mcpack+"\\"+sky_names[1])
+      self.MoveToOut(mcpack_folder)
+    
+    if readconfig()[2] == False and readconfig()[3] == False: move(tempdir[:-1], readconfig()[1])
+    
+    return self

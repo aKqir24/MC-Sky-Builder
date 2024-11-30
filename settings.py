@@ -76,7 +76,7 @@ class SettingsWindow:
           Label(com, text="Convert Into .zip",  bg=db, fg=f, bd=0).place(x=22, y=23)
           Label(com, text="Convert Into .mcpack", bg=db, fg=f, bd=0).place(x=22, y=1)
           Label(settingswindow, text="Output Folder", bg=db, fg=f, pady= 1, bd=0).place(x=12, y=5)
-          Label(settingswindow, text="Sky Resolution", bg=db, fg=f, pady= 1, bd=0).place(x=168/3-12, y=55)
+          Label(settingswindow, text="Sky Resolution", bg=db, fg=f, pady= 1, bd=0).place(x=168/3-13, y=55)
           output_path_bg.place(x=77, y= 25)
           outputfolderlabel.place(x=77, y= 25)
       
@@ -149,11 +149,9 @@ class SettingsOptionsButtons:
         self.imgresolution.set(0)
         self.packzipch.deselect()
         self.packmcpackch.deselect()
-        with open(config_dir, 'r') as readconfig:
-          readusingjson = load(readconfig)
-          the_outputfolder_path = readusingjson['Outputfolder_Path']
-          for index in range(0, len(the_outputfolder_path), 1000):
-              self.outputfolderlabel.config(text=the_outputfolder_path[index:index+49]+"...")
+        the_outputfolder_path = readconfig()[1]
+        for index in range(0, len(the_outputfolder_path), 1000):
+          self.outputfolderlabel.config(text=the_outputfolder_path[index:index+49]+"...")
 
     def applysettings(self):
       def savelabel():
