@@ -61,6 +61,16 @@ class CreateCubeIMG:
     messagebox.showerror( title="Error_2", message=errormessage)
       
   def getcreatesky(self):
+    def cropmergedimage():
+      # Crop coordinates for three equal parts
+      merged_image = Image.open(tempdir+'combined.png')
+      coords = [
+        (0, 0, img_res, img_res),             
+        (0, img_res, img_res, img_res * 2),    
+        (0, img_res * 2, img_res, img_res * 3) ]
+      for i ,croped_coords in enumerate(coords):
+        cropped_img = merged_image.crop(croped_coords)
+        cropped_img.save(f"Merged_{i + 1}.png")
     try:
       self.progresswindow.focus_set()
       imgIn = Image.open(image_details[0]) 
@@ -85,22 +95,11 @@ class CreateCubeIMG:
           if name_map[row][col] != "":
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
-      CreateCubeIMG.mergeskyedges(correct_position).save(tempdir+'combined.png').cropmergedimage(tempdir+"combined.png")
+      CreateCubeIMG.mergeskyedges(correct_position).save(tempdir+'combined.png')
       packsky().ZipMcpackOrBoth().MoveToOut()
     except IndexError: CreateCubeIMG.getimageError(self)
     except _tkinter.TclError: pass
-
-    def cropmergedimage(self, merged_img_path):
-      # Crop coordinates for three equal parts
-      merged_image = Image.open(merged_img_path)
-      coords = [
-        (0, 0, img_res, image_res),             
-        (0, image_res, image_res, image_res * 2),    
-        (0, image_res * 2, image_res, image_res * 3) ]
-      for i ,croped_coords in range(coords):
-        cropped_img = img.crop(croped_coords)
-        cropped_img.save(f"Merged_{i + 1}.jpg")
-    
+    return cropmergedimage()
 
 class ConvertDetails(CreateCubeIMG):
     def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage, pv):
@@ -123,7 +122,7 @@ class ConvertDetails(CreateCubeIMG):
       inSize, outSize = [(self.imgIn.size), (self.imgOut.size)]
       inPix, outPix = [(self.imgIn.load()), (self.imgOut.load())]
       edge = inSize[0]/4   # the length of each edge in pixels
-      /current_percent = 1
+      current_percent = 1
       for i in range(outSize[0]): 
         face = int(i/edge) # 0 - back, 1 - left 2 - front, 3 - right
         if face==2: rng = range(0,int(edge*3))

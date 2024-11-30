@@ -5,7 +5,7 @@
 """ 
 
 from json import dump, load
-from os import getenv, path, remove as rm, mkdir, mkdirs, rename
+from os import getenv, path, remove as rm, mkdir, makedirs, rename
 
 dsktp_regkey = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
 font_details = [('Noto Sans',8,'normal'), ('Segoe UI',10,'normal')] 

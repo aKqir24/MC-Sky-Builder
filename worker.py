@@ -132,11 +132,11 @@ class SettingsMultiOptions:
 class MkJsonPackDetailsFile:
   #GetImageDetails.getimagename(self)
   pack_des = "This SkyOverlay Was Made By The Help Of §cAkqir's (§bMC §fSky Builder) Software..." 
-  def makethemanifest(path):
+  def makethemanifest():
     uuid1 = generate_random_uuid()
     uuid2 = generate_random_uuid()
     # For Bedrock Write The Manifest File 
-    with open(tempdir+path+'manifest.json', 'w') as writejson:
+    with open(tempdir+image_details[2]+'manifest.json', 'w') as writejson:
       manifestfile =  { "format_version": 1, "header": { 
                         "description": MkJsonPackDetailsFile.pack_des,
                         "name": image_details[2]+" (Sky Overlay)", "uuid": str(uuid1), 
@@ -144,8 +144,8 @@ class MkJsonPackDetailsFile:
                         "description": "", "type": "resources", "uuid": str(uuid2), "version": [1, 0, 0] } ] }
       dump(manifestfile, writejson, sort_keys=True, skipkeys=1, indent=3)
     
-  def makethepackmeta(path):
-    with open(tempdir+path+'pack.json', 'w') as writepckmeta:
+  def makethepackmeta():
+    with open(tempdir+image_details[2]+'pack.json', 'w') as writepckmeta:
       pack_des = FileManagement.pack_des.replace("§c", "").replace("§b", "").replace("§f", "")
       packmeta = { "pack": { "pack_format": 1, "description": pack_des } }
       dump(packmeta, writepckmeta, sort_keys=True, skipkeys=1, indent=3)
@@ -165,16 +165,16 @@ class PackingPack:
   def ZipMcpackOrBoth(self):
     if readconfig()[2] == True: 
       path = image_details[2]+"\\textures\\environment\\overworld_cubemap"
-      mkdirs(tempdir+path)
+      makedirs(tempdir+path)
       copy(tempdir+"\\"+sky_names, tempdir+path)
       print("Converting to Zip (Java Option!!)...")
-      MkJsonPackDetailsFile.makethepackmeta(path+"\\")
+      MkJsonPackDetailsFile.makethepackmeta()
 
     if readconfig()[3] == True: 
       path = image_details[2]+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
-      mkdirs(tempdir+path)
+      makedirs(tempdir+path)
       print("Converting to Mcpack (Bedrock Option!!)...")
-      MkJsonPackDetailsFile.makethemanifest(path+"\\")
+      MkJsonPackDetailsFile.makethemanifest()
       
     def CheckPackFolder():
       for move_no in range (0, 6): 
