@@ -4,7 +4,7 @@
 
 """ 
 
-from os import getenv
+from os import getenv, path, remove as rm, mkdir, rename
 from json import dump, load
 
 dsktp_regkey = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"

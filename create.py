@@ -9,7 +9,7 @@ from time import sleep
 from threading import Thread
 from math import pi,sin,cos,tan,atan2,hypot,floor
 from numpy import clip, hstack, array, concatenate
-from worker import MkJsonPackDetailsFile, ZipMcpackOrBoth, Image, ImageTk, _tkinter, messagebox
+from worker import PackingPack, Image, ImageTk, _tkinter, messagebox
      
 class CreateCubeIMG:
   def __init__(self, progresswindow, create_process, percentage):
@@ -64,14 +64,13 @@ class CreateCubeIMG:
     try:
       self.progresswindow.focus_set()
       imgIn = Image.open(image_details[0]) 
-      inSize = imgIn.size
-      self.create_process.config(value=1)
+      inSize = imgIn.size 
       imgOut = Image.new("RGB",(inSize[0],int(inSize[0]*3/4)),"black")
       if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position = [0.010, 4]
-      elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv,correct_position = [0.0225, 3]
+      elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position = [0.0225, 3]
       else: pv, correct_position= [0.045, 2]
       createcube = ConvertDetails( imgIn, imgOut, self.progresswindow, self.create_process, self.percentage, pv)
-      progress_value, packsky = [(createcube.convertBack()),(ZipMcpackOrBoth().CheckAndPack())]
+      progress_value, packsky = [(createcube.convertBack()),(PackingPack)]
       
       name_map = [ \
            ["", "", "Top", ""],
@@ -82,19 +81,18 @@ class CreateCubeIMG:
       img_res, out_path, cube_size = [(readconfig()[0]), (readconfig()[1]), (width/4)]
       for row in range(3):
         for col in range(4):
-          progress_value = progress_value+col-1
-          current_progress = progress_value
+          createcube.CurrentProgress(progress_value)
           if name_map[row][col] != "":
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
-            self.create_process.config(value=current_progress)
-            self.percentage.set(str(int(current_progress))+"%")
-        CreateCubeIMG.mergeskyedges(correct_position).save(tempdir+'combined.png')
+      CreateCubeIMG.mergeskyedges(correct_position).save(tempdir+'combined.png') 
+      packsky().MoveToOut().ZipMcpackOrBoth()
     except IndexError: CreateCubeIMG.getimageError(self)
     except _tkinter.TclError: pass
 
-    def cropmergedimage(self):
-      pass
+    def cropmergedimage(self, merged_img_path):
+      merged_image = Image.open(merged_img_path)
+      top, font, bottom = [merged_image.crop]
 
 class ConvertDetails(CreateCubeIMG):
     def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage, pv):
@@ -117,16 +115,12 @@ class ConvertDetails(CreateCubeIMG):
       inSize, outSize = [(self.imgIn.size), (self.imgOut.size)]
       inPix, outPix = [(self.imgIn.load()), (self.imgOut.load())]
       edge = inSize[0]/4   # the length of each edge in pixels
-      current_percent = 1
+      /current_percent = 1
       for i in range(outSize[0]): 
-        pross_interval = current_percent+self.pv
-        current_percent = pross_interval
-        self.percentage.set(str(int(current_percent))+"%")
-        self.create_process['value']+=self.pv
-        self.progresswindow.update_idletasks()
         face = int(i/edge) # 0 - back, 1 - left 2 - front, 3 - right
         if face==2: rng = range(0,int(edge*3))
         else: rng = range(int(edge), int(edge) * 2)
+        current_percent = self.CurrentProgress(current_percent)
         for j in rng:
           if j<edge: face2 = 4      # top
           elif j>=2*edge: face2 = 5 # bottom
@@ -138,7 +132,7 @@ class ConvertDetails(CreateCubeIMG):
           uf = ( 2*edge*(theta + pi)/pi )
           vf = ( 2.14*edge * (pi/1.869 - phi)/pi)
           # Use bilinear interpolation between the four surrounding pixels
-          ui, vi = [(floor(uf)),(floor(vf))] # coord of pixel to bottom left
+          ui, vi = [(floor(uf)),(floor(vf))]  # coord of pixel to bottom left
           u2, v2 = [(ui+1),(vi+1)]            # coords of pixel to top right     
           mu, nu = [(uf-ui), (vf-vi)]         # fraction of way across pixel
           A = inPix[ui % inSize[0],int(clip(vi,0,inSize[1]-1))]
@@ -150,5 +144,13 @@ class ConvertDetails(CreateCubeIMG):
             A[0]*(1-mu)*(1-nu) + B[0]*(mu)*(1-nu) + C[0]*(1-mu)*nu+D[0]*mu*nu,
             A[1]*(1-mu)*(1-nu) + B[1]*(mu)*(1-nu) + C[1]*(1-mu)*nu+D[1]*mu*nu,
             A[2]*(1-mu)*(1-nu) + B[2]*(mu)*(1-nu) + C[2]*(1-mu)*nu+D[2]*mu*nu )
-          outPix[i,j] = (int(round(r)),int(round(g)),int(round(b)))
+          outPix[i,j] = (int(round(r)),int(round(g)),int(round(b)))  
+      return current_percent
+
+    def CurrentProgress(self, current_percent):
+      pross_interval = current_percent+self.pv
+      current_percent = pross_interval
+      self.percentage.set(str(int(current_percent))+"%")
+      self.create_process['value']+=self.pv
+      self.progresswindow.update_idletasks()
       return current_percent
