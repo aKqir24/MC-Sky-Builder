@@ -61,9 +61,9 @@ class CreateCubeIMG:
     messagebox.showerror( title="Error_2", message=errormessage)
       
   def getcreatesky(self):
-    def cropmergedimage(old_names):
+    def cropmergedimage(old_names, save_merged):
       # Crop coordinates for three equal parts
-      merged_image = Image.open(tempdir+'combined.png')
+      merged_image = Image.open(save_merged)
       coords = [
         (0, 0, img_res, img_res),             
         (0, img_res, img_res, img_res * 2),    
@@ -71,10 +71,13 @@ class CreateCubeIMG:
       
       for i ,croped_coords in enumerate(coords):
         print(str(i))
-        if i == 1 : i = 7 
-        if i == 2 : i = 1
+        name_index = [5, 2, 4]
+        indexed_names = tempdir+old_names[name_index[i]]
         cropped_img = merged_image.crop(croped_coords)
-        cropped_img.save(old_names[i+5])
+        rm(indexed_names)
+        cropped_img.save(indexed_names)
+      rm(save_merged)
+
     try:
       self.progresswindow.focus_set()
       imgIn = Image.open(image_details[0]) 
@@ -92,6 +95,7 @@ class CreateCubeIMG:
            ["", "", "Bottom", ""]]
 
       width, height = imgOut.size 
+      save_merged = tempdir+'combined.png'
       img_res, out_path, cube_size = [(readconfig()[0]), (readconfig()[1]), (width/4)]
       for row in range(3):
         for col in range(4):
@@ -99,12 +103,11 @@ class CreateCubeIMG:
           if name_map[row][col] != "":
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
-      CreateCubeIMG.mergeskyedges(correct_position).save(tempdir+'combined.png')
-      packsky().ZipMcpackOrBoth()
+      CreateCubeIMG.mergeskyedges(correct_position).save(save_merged)
       old_names = packsky().MoveToOut()
     except IndexError: CreateCubeIMG.getimageError(self)
     except _tkinter.TclError: pass
-    return cropmergedimage(old_names)
+    return cropmergedimage(old_names, save_merged)
 
 class ConvertDetails(CreateCubeIMG):
     def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage, pv):
