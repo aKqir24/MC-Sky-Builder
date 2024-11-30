@@ -6,5 +6,3 @@ def aboutWin(settingswindow):
   aboutwindow.title("About")
   settingswindow.wait_window()
   aboutwindow.destroy()
-
-  

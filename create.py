@@ -18,6 +18,7 @@ class CreateCubeIMG:
     self.create_process = create_process
     
   def loadingtitle(self):
+    # Update the title of the progress window during loading
     try:
       sleep(1)
       while int(str(self.percentage.get().replace("%", ""))) <= 100:
@@ -34,6 +35,7 @@ class CreateCubeIMG:
     except ValueError: pass
   
   def mergeskyedges(correct_position):
+    # Merge sky edge images into a single image to blend the pixels
     top = Image.open(tempdir+'Top'+ext).rotate(-180)
     front = Image.open(tempdir+'Front'+ext)
     bottom = Image.open(tempdir+'Bottom'+ext).rotate(180)
@@ -56,13 +58,14 @@ class CreateCubeIMG:
     return combined
 
   def getimageError(self):
+    # Handle image opening errors
     self.progresswindow.destroy()
     errormessage = "Image file is not opened or found"
     messagebox.showerror( title="Error_2", message=errormessage)
       
   def getcreatesky(self):
     def cropmergedimage(old_names, save_merged):
-      # Crop coordinates for three equal parts
+    # Crop the blended merged image into three parts & save them
       merged_image = Image.open(save_merged)
       coords = [
         (0, 0, img_res, img_res),             
@@ -70,7 +73,6 @@ class CreateCubeIMG:
         (0, img_res * 2, img_res, img_res * 3) ]
       
       for i ,croped_coords in enumerate(coords):
-        print(str(i))
         name_index = [5, 2, 4]
         indexed_names = tempdir+old_names[name_index[i]]
         cropped_img = merged_image.crop(croped_coords)
@@ -83,6 +85,7 @@ class CreateCubeIMG:
       imgIn = Image.open(image_details[0]) 
       inSize = imgIn.size 
       imgOut = Image.new("RGB",(inSize[0],int(inSize[0]*3/4)),"black")
+      # Set the progress_bar parameters based on input image size
       if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position = [0.010, 4]
       elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position = [0.0225, 3]
       else: pv, correct_position= [0.045, 2]
@@ -104,10 +107,10 @@ class CreateCubeIMG:
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
       CreateCubeIMG.mergeskyedges(correct_position).save(save_merged)
-      old_names = packsky().MoveToOut()
+      packsky().ZipMcpackOrBoth().MoveToOut()
     except IndexError: CreateCubeIMG.getimageError(self)
     except _tkinter.TclError: pass
-    return cropmergedimage(old_names, save_merged)
+    return cropmergedimage(packsky.old_names, save_merged)
 
 class ConvertDetails(CreateCubeIMG):
     def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage, pv):
@@ -118,6 +121,7 @@ class ConvertDetails(CreateCubeIMG):
 
     def outImgToXYZ(i,j,face,edge):
       a, b = [(2.0*float(i)/edge), (2.0*float(j)/edge)]
+      # Calculate coordinates based on the face of the cube
       if face==0: (x,y,z) = (-1.0, 1.0-a, 3.0 - b)    # back
       elif face==1: (x,y,z) = (a-3.0, -1.0, 3.0 - b)  # left
       elif face==2: (x,y,z) = (1.0, a - 5.0, 3.0 - b) # front

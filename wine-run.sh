@@ -82,4 +82,4 @@ case ${1,,} in
 	;;
 	*)
 		check_depend ; check_py_depend ; program & progress
-esac
+esac 
