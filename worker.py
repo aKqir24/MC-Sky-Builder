@@ -70,7 +70,7 @@ class ToDoDuringStartup:
   def installfonts(self):
     font_dir = "C:\\windows\\Fonts\\NotoSans-Regular.ttf"
     if path.exists(font_dir): pass
-    else: passcopy('res\\NotoSans-Regular.ttf', font_dir)
+    else: copy('res\\NotoSans-Regular.ttf', font_dir)
     return self
 
 class ConfigManagement: 
@@ -132,11 +132,11 @@ class SettingsMultiOptions:
 class MkJsonPackDetailsFile:
   #GetImageDetails.getimagename(self)
   pack_des = "This SkyOverlay Was Made By The Help Of §cAkqir's (§bMC §fSky Builder) Software..." 
-  def makethemanifest():
+  def makethemanifest(path):
     uuid1 = generate_random_uuid()
     uuid2 = generate_random_uuid()
     # For Bedrock Write The Manifest File 
-    with open(tempdir+'manifest.json', 'w') as writejson:
+    with open(tempdir+path+'manifest.json', 'w') as writejson:
       manifestfile =  { "format_version": 1, "header": { 
                         "description": MkJsonPackDetailsFile.pack_des,
                         "name": image_details[2]+" (Sky Overlay)", "uuid": str(uuid1), 
@@ -144,8 +144,8 @@ class MkJsonPackDetailsFile:
                         "description": "", "type": "resources", "uuid": str(uuid2), "version": [1, 0, 0] } ] }
       dump(manifestfile, writejson, sort_keys=True, skipkeys=1, indent=3)
     
-  def makethepackmeta():
-    with open(tempdir+'pack.json', 'w') as writepckmeta:
+  def makethepackmeta(path):
+    with open(tempdir+path+'pack.json', 'w') as writepckmeta:
       pack_des = FileManagement.pack_des.replace("§c", "").replace("§b", "").replace("§f", "")
       packmeta = { "pack": { "pack_format": 1, "description": pack_des } }
       dump(packmeta, writepckmeta, sort_keys=True, skipkeys=1, indent=3)
@@ -157,22 +157,24 @@ class MkJsonPackDetailsFile:
 class PackingPack:
   def MoveToOut(self):
     print("Moving Sky To Pack Folder...")
-    old_names = ["Back.png", "Bottom.png", "Front.png", "Left.png", "Top.png", "Right.png"]
-    new_names = ["cubemap_0.png", "cubemap_5.png", "cubemap_2.png","cubemap_1.png","cubemap_4.png", "cubemap_3.png"]
-    MkJsonPackDetailsFile.packrenamer(old_names, new_names)
+    old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Bottom.png",  "Top.png"]
+    new_names = ["cubemap_0.png", "cubemap_1.png", "cubemap_2.png", "cubemap_3.png", "cubemap_4.png", "cubemap_5.png"]
+    #MkJsonPackDetailsFile.packrenamer(old_names, new_names)
     return self
 
   def ZipMcpackOrBoth(self):
     if readconfig()[2] == True: 
       path = image_details[2]+"\\textures\\environment\\overworld_cubemap"
+      mkdirs(tempdir+path)
       copy(tempdir+"\\"+sky_names, tempdir+path)
       print("Converting to Zip (Java Option!!)...")
-      MkJsonPackDetailsFile.makethepackmeta()
+      MkJsonPackDetailsFile.makethepackmeta(path+"\\")
 
     if readconfig()[3] == True: 
       path = image_details[2]+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
+      mkdirs(tempdir+path)
       print("Converting to Mcpack (Bedrock Option!!)...")
-      MkJsonPackDetailsFile.makethemanifest()
+      MkJsonPackDetailsFile.makethemanifest(path+"\\")
       
     def CheckPackFolder():
       for move_no in range (0, 6): 

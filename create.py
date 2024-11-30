@@ -85,14 +85,22 @@ class CreateCubeIMG:
           if name_map[row][col] != "":
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
-      CreateCubeIMG.mergeskyedges(correct_position).save(tempdir+'combined.png') 
-      packsky().MoveToOut().ZipMcpackOrBoth()
+      CreateCubeIMG.mergeskyedges(correct_position).save(tempdir+'combined.png').cropmergedimage(tempdir+"combined.png")
+      packsky().ZipMcpackOrBoth().MoveToOut()
     except IndexError: CreateCubeIMG.getimageError(self)
     except _tkinter.TclError: pass
 
     def cropmergedimage(self, merged_img_path):
+      # Crop coordinates for three equal parts
       merged_image = Image.open(merged_img_path)
-      top, font, bottom = [merged_image.crop]
+      coords = [
+        (0, 0, img_res, image_res),             
+        (0, image_res, image_res, image_res * 2),    
+        (0, image_res * 2, image_res, image_res * 3) ]
+      for i ,croped_coords in range(coords):
+        cropped_img = img.crop(croped_coords)
+        cropped_img.save(f"Merged_{i + 1}.jpg")
+    
 
 class ConvertDetails(CreateCubeIMG):
     def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage, pv):
