@@ -4,6 +4,7 @@
 
 """ 
 
+from time import sleep
 from json import dump, load
 from os import getenv, path, remove as rm, mkdir, makedirs, rename
 
@@ -24,12 +25,12 @@ ext, blend_width, curve_radius = [".png", 42, 2]
 
 # current config's
 def readconfig():
-  readconfig = open(config_dir, 'r')
-  readusingjson = load(readconfig)
-  img_res = readusingjson['Image_Size']
-  out_path = readusingjson['Outputfolder_Path']
-  zip_pack_ch = readusingjson['Convert_To_Zip']
-  mc_pack_ch = readusingjson['Convert_To_Mcpack']
+  with open(config_dir, 'r') as readconfig:
+    readusingjson = load(readconfig)
+    img_res = readusingjson['Image_Size']
+    out_path = readusingjson['Outputfolder_Path']
+    zip_pack_ch = readusingjson['Convert_To_Zip']
+    mc_pack_ch = readusingjson['Convert_To_Mcpack']
   return [img_res, out_path, zip_pack_ch, mc_pack_ch]
 
 # default configuration

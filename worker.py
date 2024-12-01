@@ -27,7 +27,7 @@ class GetImageDetails:
     getimgpath = rmpackex
     imgpathfori = getimgpath+" "
     while getimgpath[:-default_index].startswith('/') == False:
-      cl= default_index+1
+      cl = default_index+1
       default_index = cl
       rmdirtxt = (imgpathfori[:-default_index])
       if rmdirtxt.endswith('/') == True:
@@ -159,6 +159,11 @@ class PackingPack:
   
   def MoveToOut(self):
     print("Moving Sky To Pack Folder...")
+
+    return self
+  
+  def CleanUp(self):
+    print("Cleaning Up '%TEMP%' files")
     return self
 
   def ZipMcpackOrBoth(self):
@@ -178,31 +183,35 @@ class PackingPack:
 
       # Paste images into the new image
       for img_i, temp_image in enumerate(temp_images):
-          if img_i < 3:
-              # Top row (back, left, front)
-              x_offset = width * img_i
-              y_offset = 0
-          else:
-              # Bottom row (bottom, right, top)
-              x_offset = width * (img_i - 3)
-              y_offset = height
-
-          javasky.paste(temp_image, (int(x_offset), int(y_offset)))
+        if img_i < 3:
+          # Top row (bottom, top, back)
+          x_offset = width * img_i
+          y_offset = 0
+        else:
+          # Bottom row (left, front, right)
+          x_offset = width * (img_i - 3)
+          y_offset = height
+        javasky.paste(temp_image, (int(x_offset), int(y_offset)))
       return javasky
 
     if readconfig()[2] == True: 
-      path_zip = image_details[2]+".zip"+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
+      zip_folder = image_details[2]+".zip"
+      path_zip = path_folder+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
       print("Converting to Zip (Java Option!!)...")
       makedirs(tempdir+path_zip)
       MkJsonPackDetailsFile.makethepackmeta()
-      mergejavasky().save(path_zip+"cloud1.png")
+      mergejavasky().save(tempdir+path_zip+'\\'+'cloud1.png')
 
     if readconfig()[3] == True: 
-      path_mcpack = image_details[2]+".mcpack"+"\\textures\\environment\\overworld_cubemap"
+      mcpack_folder = image_details[2]+".mcpack"
+      path_mcpack = mcpack_folder+"\\textures\\environment\\overworld_cubemap"
       print("Converting to Mcpack (Bedrock Option!!)...")
       makedirs(tempdir+path_mcpack)
       MkJsonPackDetailsFile.makethemanifest()
       for move_no in range (0, 6): 
-        sky_names = [old_names[move_no], new_names[move_no]]
+        sky_names = [self.old_names[move_no], self.new_names[move_no]]
         copy(tempdir+sky_names[0], tempdir+path_folder+"\\"+sky_names[1])
+    
+    if readconfig()[2] == False and readconfig()[3] == False: move(tempdir[:-1], readconfig()[1])
+    
     return self

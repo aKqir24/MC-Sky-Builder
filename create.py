@@ -5,7 +5,6 @@
 from __future__ import print_function
 import sys
 from all_val import *
-from time import sleep
 from threading import Thread
 from math import pi,sin,cos,tan,atan2,hypot,floor
 from numpy import clip, hstack, array, concatenate
@@ -107,10 +106,10 @@ class CreateCubeIMG:
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
       CreateCubeIMG.mergeskyedges(correct_position).save(save_merged)
+      cropmergedimage(packsky.old_names, save_merged)
       packsky().ZipMcpackOrBoth().MoveToOut()
     except IndexError: CreateCubeIMG.getimageError(self)
     except _tkinter.TclError: pass
-    return cropmergedimage(packsky.old_names, save_merged)
 
 class ConvertDetails(CreateCubeIMG):
     def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage, pv):
