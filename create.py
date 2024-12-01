@@ -134,7 +134,7 @@ class ConvertDetails(CreateCubeIMG):
       inPix, outPix = [(self.imgIn.load()), (self.imgOut.load())]
       edge = inSize[0]/4   # the length of each edge in pixels
       current_percent = 1
-      for i in range(outSize[0]): 
+      for i in range(outSize[0]):
         face = int(i/edge) # 0 - back, 1 - left 2 - front, 3 - right
         if face==2: rng = range(0,int(edge*3))
         else: rng = range(int(edge), int(edge) * 2)

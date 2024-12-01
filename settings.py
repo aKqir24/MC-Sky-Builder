@@ -165,4 +165,4 @@ class SettingsOptionsButtons:
       self.user_options.checkzipconvert()
       Thread(target=savelabel).start()
       self.settingswindow.focus_set()
-      self.user_options.outputres() 
+      self.user_options.outputres()

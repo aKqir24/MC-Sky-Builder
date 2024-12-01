@@ -5,4 +5,4 @@ def aboutWin(settingswindow):
   aboutwindow.geometry('350x400')
   aboutwindow.title("About")
   settingswindow.wait_window()
-  aboutwindow.destroy()
+  aboutwindow.destroy() 

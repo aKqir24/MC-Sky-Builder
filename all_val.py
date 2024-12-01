@@ -34,4 +34,4 @@ def readconfig():
   return [img_res, out_path, zip_pack_ch, mc_pack_ch]
 
 # default configuration
-config_dict = {"image_res": 256, "mc_convert": False, "jv_convert": False} 
+config_dict = {"image_res": 256, "mc_convert": False, "jv_convert": False}
