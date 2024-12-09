@@ -33,5 +33,11 @@ def readconfig():
     mc_pack_ch = readusingjson['Convert_To_Mcpack']
   return [img_res, out_path, zip_pack_ch, mc_pack_ch]
 
+def writeconfig(chosen_res, getchconjavzip, getchconmcpack, userpath):
+  with open(config_dir, 'w') as writeconfig:
+    configuration = { "Image_Size": chosen_res, "Convert_To_Zip": getchconjavzip,
+                      "Convert_To_Mcpack": getchconmcpack, "Outputfolder_Path": userpath }
+    readusingjson = dump(configuration, writeconfig, indent=4)
+
 # default configuration
 config_dict = {"image_res": 256, "mc_convert": False, "jv_convert": False}
