@@ -16,24 +16,28 @@ class CreateCubeIMG:
     self.progresswindow = progresswindow  
     self.create_process = create_process
     
+  noimagehandler = lambda self: ConvertDetails.getimageError(self)
+
   def loadingtitle(self):
     # Update the title of the progress window during loading
     try:
       sleep(1)
-      while int(str(self.percentage.get().replace("%", ""))) <= 100:
-        if int(str(self.percentage.get().replace("%", ""))) >= 99: 
-          self.progresswindow.title("Done!!")
-          break
+      while int(str(self.percentage.get().replace("%", ""))) < 100:
         for tlno in range(0, 7):
-          sleep(1)
-          titlemsg = ("Building Sky")
-          titledot = [ " ",".","."*2,"."*3, "."*3, "."*2, "." ]
-          self.progresswindow.title(titlemsg+titledot[0+tlno])
+          if int(str(self.percentage.get().replace("%", ""))) >= 99: 
+            self.progresswindow.destroy()
+            messagebox.showinfo(title="Finished!!", message="Sky `Building` was a success :D")
+            break
+          else:
+            sleep(1)
+            titlemsg = ("Building Sky")
+            titledot = [ " ",".","."*2,"."*3, "."*3, "."*2, "." ]
+            self.progresswindow.title(titlemsg+titledot[0+tlno])
     except _tkinter.TclError: pass
     except RuntimeError: pass
     except ValueError: pass
   
-  def mergeskyedges(self, correct_position):
+  def mergeskyedges(self, correct_position, blend_width):
     # Merge sky edge images into a single image to blend the pixels
     top = Image.open(tempdir+'Top'+ext).rotate(-180)
     front = Image.open(tempdir+'Front'+ext)
@@ -59,8 +63,8 @@ class CreateCubeIMG:
   def mergejavasky(self):
     filenames = PackingPack.old_names
     temp_images = [
-      Image.open(tempdir + filenames[4]),  # bottom
-      Image.open(tempdir + filenames[5]),  # top
+      Image.open(tempdir + filenames[5]),  # bottom
+      Image.open(tempdir + filenames[4]),  # top
       Image.open(tempdir + filenames[0]),  # back
       Image.open(tempdir + filenames[1]),  # left
       Image.open(tempdir + filenames[2]),  # front
@@ -71,6 +75,7 @@ class CreateCubeIMG:
     javasky = Image.new("RGBA", (width * 3, height * 2))
     # Paste images into the new image
     for img_i, temp_image in enumerate(temp_images):
+      
       # Top row (bottom, top, back)
       if img_i < 3: x_offset, y_offset = [(width * img_i), 0]
       # Bottom row (left, front, right)
@@ -88,11 +93,14 @@ class CreateCubeIMG:
         (0, img_res * 2, img_res, img_res * 3) ]
       
       for i ,croped_coords in enumerate(coords):
-        name_index = [5, 2, 4]
+        name_index = [4, 2, 5]
         indexed_names = tempdir+old_names[name_index[i]]
         cropped_img = merged_image.crop(croped_coords)
         rm(indexed_names)
-        cropped_img.save(indexed_names)
+        if i == 2: 
+          print("Yes")
+          cropped_img.rotate(180).save(indexed_names)
+        else: cropped_img.save(indexed_names)
       rm(save_merged)
 
     try:
@@ -101,9 +109,10 @@ class CreateCubeIMG:
       inSize = imgIn.size 
       imgOut = Image.new("RGB",(inSize[0],int(inSize[0]*3/4)),"black")
       # Set the progress_bar parameters based on input image size
-      if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position = [0.010, 4]
-      elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position = [0.0225, 3]
-      else: pv, correct_position= [0.045, 2]
+      if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position, blend_width = [0.010, 4, 55]
+      elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position, blend_width = [0.0225, 3, 50]
+      elif inSize[0] >= 1280 or inSize[1] >= 1080 : pv, correct_position = [0.045, 3, 46]
+      else: pv, correct_position, blend_width = [0.071, 2, 42]
       createcube = ConvertDetails( imgIn, imgOut, self.progresswindow, self.create_process, self.percentage, pv)
       progress_value, packsky = [(createcube.convertBack()),(PackingPack)]
       
@@ -121,10 +130,16 @@ class CreateCubeIMG:
           if name_map[row][col] != "":
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
-      self.mergeskyedges(correct_position).save(save_merged)
-      cropmergedimage(packsky.old_names, save_merged)
-      packsky().ZipMcpackOrBoth(self.mergejavasky())
-    except IndexError: ConvertDetails.getimageError(self)
+      get_remaining_progress = 100-progress_value
+      divide_remaining_progress = get_remaining_progress/3
+      for remaining_process in range(1,5):
+        if remaining_process == 4: sleep(1)
+        else:
+          createcube.CurrentProgress(progress_value+divide_remaining_progress*remaining_process)
+          if remaining_process == 1: self.mergeskyedges(correct_position, blend_width).save(save_merged)
+          if remaining_process == 2: cropmergedimage(packsky.old_names, save_merged)
+          if remaining_process == 3: packsky().ZipMcpackOrBoth(self.mergejavasky()).CleanUp()
+    except IndexError: self.noimagehandler()
     except _tkinter.TclError: pass
 
 class ConvertDetails(CreateCubeIMG):
@@ -182,10 +197,11 @@ class ConvertDetails(CreateCubeIMG):
     return current_percent
 
   def CurrentProgress(self, current_percent):
-    pross_interval = current_percent+self.pv
+    percent_interval = self.pv
+    pross_interval = current_percent+percent_interval
     current_percent = pross_interval
     self.percentage.set(str(int(current_percent))+"%")
-    self.create_process['value']+=self.pv
+    self.create_process['value']=current_percent
     self.progresswindow.update_idletasks()
     return current_percent
 
@@ -194,3 +210,4 @@ class ConvertDetails(CreateCubeIMG):
     self.progresswindow.destroy()
     errormessage = "Image file is not opened or found"
     messagebox.showerror( title="Error_2", message=errormessage)
+    return self

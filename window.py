@@ -2,15 +2,15 @@
 from all_val import *
 from tkinter import Tk, Button
 from tkinter.ttk import Progressbar
-from subprocess import Popen as showfolder
+from subprocess import Popen as showfolder, run
 from worker import GetImageDetails, filedialog, Toplevel, Label, StringVar
 from settings import SettingsWindow, Frame, BooleanVar, Thread, Image, ImageTk, CreateCubeIMG, load, resetto, _tkinter
 
-resetto().makethetempdir().setdefaults().installfonts()
+resetto().makethetempdir().setdefaults()
 
 # mainwindow ( Main Window Of The Program )
 mainwindow = Tk()
-mainwindow.geometry('374x266')
+mainwindow.geometry('376x268')
 mainwindow.title("MC Sky Builder")
 mainwindow.config(background="#283149")
 mainwindow.iconbitmap('res\\icon.ico')
@@ -18,8 +18,8 @@ mainwindow.resizable(False, False)
 
 # mainwindow ( Labels/Frames Of The Path & Location )
 Imageinput = Label( mainwindow, text="Image Folder :", bg="#283149", fg=f, pady= 1, bd=0 )
-Fileprevb= Frame( mainwindow, bg="#303b58", height= 184, width= 350, bd=0 )
-Fileprev = Frame( mainwindow, bg="#404b69", height= 180, width= 346, bd=0 )
+Fileprevb= Frame( mainwindow, bg="#303b58", height= 184, width= 354, bd=0 )
+Fileprev = Frame( mainwindow, bg="#404b69", height= 180, width= 350, bd=0 )
 Imageprev = Label( Fileprev, bg="#404b69", justify='left')
 Fileprev.place(x=14, y= 14)
 Fileprevb.place(x=12, y= 12)
@@ -40,27 +40,32 @@ class ButtonsCommands:
           Imageinput.config(text="Image Folder : "+the_imagefolder_path[index:index+45]+"...")
           with Image.open(the_imagefolder_path).resize((368,218)) as intputimg:
             chosen_img = ImageTk.PhotoImage(intputimg)
-            Imageprev.config(image=chosen_img, height= 210, width= 346)
+            Imageprev.config(image=chosen_img, height= 210, width= 350)
           mainwindow.mainloop()
 
   def launch_create_sky():
+    def on_closing():
+      running = False  # Stop the loop
+      progresswindow.destroy()    # Close the top-level window
     try:
       percentage = StringVar()
       progresswindow = Toplevel()
       progresswindow.geometry('380x90')
       progresswindow.title("Building Sky")
       progresswindow.resizable(False, False)
+      progresswindow.iconbitmap('res\\title\\conversion.ico')
       progresswindow.config(background='#283149')
       createSKY.config(command=progresswindow.focus_set)
       create_process = Progressbar(progresswindow, length=338)
       Label(progresswindow, bg='#283149', textvariable=percentage, fg=f).place(x=380/2-15, y=50)
       create_process.place(x=20, y=20)
+      progresswindow.protocol("WM_DELETE_WINDOW", on_closing)
       processcubeimg = CreateCubeIMG(progresswindow, create_process, percentage)
       Thread(target=processcubeimg.getcreatesky).start()
       Thread(target=processcubeimg.loadingtitle).start()
       progresswindow.wait_window()
       createSKY.config(command=ButtonsCommands.launch_create_sky)
-    except IndexError: processcubeimg.getimageError()
+    except IndexError: processcubeimg.noimagehandler()
     except _tkinter.TclError: pass
 
   def goto_output_folder():
