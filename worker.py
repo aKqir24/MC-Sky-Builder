@@ -130,7 +130,7 @@ class SettingsMultiOptions:
 class MkJsonPackDetailsFile:
   #GetImageDetails.getimagename(self)
   pack_des = "This SkyOverlay Was Made By The Help Of §cAkqir's (§bMC §fSky Builder) Software..." 
-  def makethemanifest():
+  def makethemanifest(self):
     uuid1 = generate_random_uuid()
     uuid2 = generate_random_uuid()
     # For Bedrock Write The Manifest File 
@@ -141,15 +141,16 @@ class MkJsonPackDetailsFile:
                         "version": [1, 0, 0], "min_engine_version": [1, 12, 0]}, "modules": [ { 
                         "description": "", "type": "resources", "uuid": str(uuid2), "version": [1, 0, 0] } ] }
       dump(manifestfile, writejson, sort_keys=True, skipkeys=1, indent=3)
-    
-  def makethepackmeta():
+    return self
+
+  def makethepackmeta(self):
     with open(tempdir+image_details[2]+".zip"+"\\"+'pack.mcmeta', 'w') as writepckmeta:
       pack_des = MkJsonPackDetailsFile.pack_des.replace("§c", "").replace("§b", "").replace("§f", "")
       packmeta = { "pack": { "pack_format": 1, "description": pack_des } }
       dump(packmeta, writepckmeta, sort_keys=True, skipkeys=1, indent=3)
-     
-  def makepackicon():
-    pass
+    return self 
+    
+  makepackicon = lambda self, image_right, pack_folder, pack_icon_name: copy(tempdir+image_right, tempdir+pack_folder+pack_icon_name)
 
 class PackingPack:
   old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Bottom.png",  "Top.png"]
@@ -174,7 +175,7 @@ class PackingPack:
       path_zip = zip_folder+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
       print("Converting to Zip (Java Option!!)...")
       makedirs(tempdir+path_zip)
-      MkJsonPackDetailsFile.makethepackmeta()
+      MkJsonPackDetailsFile().makethepackmeta().makepackicon(self.old_names[3], zip_folder, "\\pack.png")
       mergejavasky.save(tempdir+path_zip+'\\'+'cloud1.png')
       for mv_i in range(1,9):
         if mv_i == 5: pass
@@ -188,7 +189,7 @@ class PackingPack:
       path_mcpack = mcpack_folder+"\\textures\\environment\\overworld_cubemap"
       print("Converting to Mcpack (Bedrock Option!!)...")
       makedirs(tempdir+path_mcpack)
-      MkJsonPackDetailsFile.makethemanifest()
+      MkJsonPackDetailsFile().makethemanifest().makepackicon(self.old_names[3], mcpack_folder, "\\pack_icon.png")
       for move_no in range (0, 6): 
         sky_names = [self.old_names[move_no], self.new_names[move_no]]
         copy(tempdir+sky_names[0], tempdir+path_mcpack+"\\"+sky_names[1])

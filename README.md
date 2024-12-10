@@ -13,7 +13,7 @@
 
 ![Screenshot_2024-08-10_19-22-46](https://github.com/user-attachments/assets/84079ede-8d6d-489f-beb2-c459c7aa0290)
 
-### Installation
+### Setup
 The program was only compiled in windows 10 and may not work in some systems, these the methods to get it running. Also do not forget to install the dependencies when compiling from source.
 
 - **For Windows**
