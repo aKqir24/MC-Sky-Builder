@@ -50,6 +50,7 @@ class ButtonsCommands:
       progresswindow.geometry('380x90')
       progresswindow.title("Building Sky")
       progresswindow.resizable(False, False)
+      progresswindow.iconbitmap('res\\title\\conversion.ico')
       progresswindow.config(background='#283149')
       createSKY.config(command=progresswindow.focus_set)
       create_process = Progressbar(progresswindow, length=338)
@@ -60,7 +61,7 @@ class ButtonsCommands:
       Thread(target=processcubeimg.loadingtitle).start()
       progresswindow.wait_window()
       createSKY.config(command=ButtonsCommands.launch_create_sky)
-    except IndexError: processcubeimg.getimageError()
+    except IndexError: processcubeimg.noimagehandler()
     except _tkinter.TclError: pass
 
   def goto_output_folder():

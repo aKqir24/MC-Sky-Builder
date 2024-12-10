@@ -161,12 +161,14 @@ class PackingPack:
     path_finished = tempdir+pack_name+"\\"
     output_path = readconfig()[1].replace("/", "\\")+"\\"+pack_name
     make_archive(output_path, 'zip', path.dirname(path_finished))
-    if pack_name.endswith(".zip") == True: rename(output_path+".zip", output_path.replace(".zip", "", 0))
-    else: rename(output_path+".zip", output_path.replace(".zip", ""))
+    if pack_name.endswith(".zip") == True: move(output_path+".zip", output_path.replace(".zip", "", 0))
+    else: move(output_path+".zip", output_path.replace(".zip", ""))
     return self
   
   def CleanUp(self):
     print("Cleaning Up '%TEMP%' files")
+    rmtree(tempdir)
+    mkdir(tempdir)
     return self
 
   def ZipMcpackOrBoth(self, mergejavasky):

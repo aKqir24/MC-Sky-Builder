@@ -15,7 +15,9 @@ class CreateCubeIMG:
     self.percentage = percentage
     self.progresswindow = progresswindow  
     self.create_process = create_process
-    
+
+  noimagehandler = lambda self: ConvertDetails.getimageError(self)
+
   def loadingtitle(self):
     # Update the title of the progress window during loading
     try:
@@ -33,7 +35,7 @@ class CreateCubeIMG:
     except RuntimeError: pass
     except ValueError: pass
   
-  def mergeskyedges(self, correct_position, createcube, current_percent):
+  def mergeskyedges(self, correct_position, createcube, current_percent, pv):
     # Merge sky edge images into a single image to blend the pixels
     top = Image.open(tempdir+'Top'+ext).rotate(-180)
     front = Image.open(tempdir+'Front'+ext)
@@ -106,7 +108,8 @@ class CreateCubeIMG:
       # Set the progress_bar parameters based on input image size
       if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position = [0.010, 4]
       elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position = [0.0225, 3]
-      else: pv, correct_position= [0.045, 2]
+      elif inSize[0] >= 1280 or inSize[1] >= 1080 : pv, correct_position = [0.045, 3]
+      else: pv, correct_position= [0.09, 2]
       createcube = ConvertDetails( imgIn, imgOut, self.progresswindow, self.create_process, self.percentage, pv)
       progress_value, packsky = [(createcube.convertBack()),(PackingPack)]
       
@@ -126,8 +129,8 @@ class CreateCubeIMG:
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
       self.mergeskyedges(correct_position, createcube, progress_value, pv).save(save_merged)
       cropmergedimage(packsky.old_names, save_merged)
-      packsky().ZipMcpackOrBoth(self.mergejavasky())
-    except IndexError: createcube.getimageError(self)
+      packsky().ZipMcpackOrBoth(self.mergejavasky()).CleanUp()
+    except IndexError: self.noimagehandler()
     except _tkinter.TclError: pass
 
 class ConvertDetails(CreateCubeIMG):
@@ -188,7 +191,7 @@ class ConvertDetails(CreateCubeIMG):
     pross_interval = current_percent+self.pv
     current_percent = pross_interval
     self.percentage.set(str(int(current_percent))+"%")
-    self.create_process['value']+=self.pv
+    self.create_process['value']=current_percent
     self.progresswindow.update_idletasks()
     return current_percent
 
@@ -197,3 +200,4 @@ class ConvertDetails(CreateCubeIMG):
     self.progresswindow.destroy()
     errormessage = "Image file is not opened or found"
     messagebox.showerror( title="Error_2", message=errormessage)
+    return self
