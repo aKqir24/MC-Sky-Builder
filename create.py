@@ -33,7 +33,7 @@ class CreateCubeIMG:
     except RuntimeError: pass
     except ValueError: pass
   
-  def mergeskyedges(self, correct_position):
+  def mergeskyedges(self, correct_position, createcube, current_percent):
     # Merge sky edge images into a single image to blend the pixels
     top = Image.open(tempdir+'Top'+ext).rotate(-180)
     front = Image.open(tempdir+'Front'+ext)
@@ -45,8 +45,10 @@ class CreateCubeIMG:
     left = mrg.crop((0, 0, front.width // 2, top.height*3))
     right = mrg.crop((top.width // 2, 0, top.width, top.height*3))
     combined = Image.fromarray(concatenate((array(left), array(right)),axis=1))
+    current_percent = current_percent
     for alpi in range(blend_width): 
       alpha = alpi / blend_width
+      createcube.CurrentProgress(current_percent+pv)
       for bl in range(top.height*3):
         #if alpi < curve_radius: alpha = (alpi + 1) / curve_radius
         x1 = max(0, min(left.width - 1, left.width - blend_width + alpi))
@@ -71,6 +73,7 @@ class CreateCubeIMG:
     javasky = Image.new("RGBA", (width * 3, height * 2))
     # Paste images into the new image
     for img_i, temp_image in enumerate(temp_images):
+      
       # Top row (bottom, top, back)
       if img_i < 3: x_offset, y_offset = [(width * img_i), 0]
       # Bottom row (left, front, right)
@@ -121,10 +124,10 @@ class CreateCubeIMG:
           if name_map[row][col] != "":
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
-      self.mergeskyedges(correct_position).save(save_merged)
+      self.mergeskyedges(correct_position, createcube, progress_value, pv).save(save_merged)
       cropmergedimage(packsky.old_names, save_merged)
       packsky().ZipMcpackOrBoth(self.mergejavasky())
-    except IndexError: ConvertDetails.getimageError(self)
+    except IndexError: createcube.getimageError(self)
     except _tkinter.TclError: pass
 
 class ConvertDetails(CreateCubeIMG):
