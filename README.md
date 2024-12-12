@@ -11,7 +11,7 @@
     <li> Seperated Java, Bedrock, and Both Sky Output </li>
 </ol>
 
-![Screenshot_2024-08-10_19-22-46](https://github.com/user-attachments/assets/84079ede-8d6d-489f-beb2-c459c7aa0290)
+![screen_shot](https://github.com/user-attachments/assets/76a35f6f-4f3d-43c9-b303-d3cb28388ac6)
 
 ## Setup
 The program was only compiled in windows 10 and may not work in some systems, these the methods to get it running. Also do not forget to install the dependencies when compiling from source.
