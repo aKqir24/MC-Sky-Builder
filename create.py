@@ -22,20 +22,22 @@ class CreateCubeIMG:
     # Update the title of the progress window during loading
     try:
       sleep(1)
-      while int(str(self.percentage.get().replace("%", ""))) <= 100:
-        if int(str(self.percentage.get().replace("%", ""))) >= 99: 
-          self.progresswindow.title("Done!!")
-          break
+      while int(str(self.percentage.get().replace("%", ""))) < 100:
         for tlno in range(0, 7):
-          sleep(1)
-          titlemsg = ("Building Sky")
-          titledot = [ " ",".","."*2,"."*3, "."*3, "."*2, "." ]
-          self.progresswindow.title(titlemsg+titledot[0+tlno])
+          if int(str(self.percentage.get().replace("%", ""))) >= 99: 
+            self.progresswindow.destroy()
+            messagebox.showinfo(title="Finished!!", message="Sky `Building` was a success :D")
+            break
+          else:
+            sleep(1)
+            titlemsg = ("Building Sky")
+            titledot = [ " ",".","."*2,"."*3, "."*3, "."*2, "." ]
+            self.progresswindow.title(titlemsg+titledot[0+tlno])
     except _tkinter.TclError: pass
     except RuntimeError: pass
     except ValueError: pass
   
-  def mergeskyedges(self, correct_position, createcube, current_percent, pv):
+  def mergeskyedges(self, correct_position):
     # Merge sky edge images into a single image to blend the pixels
     top = Image.open(tempdir+'Top'+ext).rotate(-180)
     front = Image.open(tempdir+'Front'+ext)
@@ -47,10 +49,8 @@ class CreateCubeIMG:
     left = mrg.crop((0, 0, front.width // 2, top.height*3))
     right = mrg.crop((top.width // 2, 0, top.width, top.height*3))
     combined = Image.fromarray(concatenate((array(left), array(right)),axis=1))
-    current_percent = current_percent
     for alpi in range(blend_width): 
       alpha = alpi / blend_width
-      createcube.CurrentProgress(current_percent+pv)
       for bl in range(top.height*3):
         #if alpi < curve_radius: alpha = (alpi + 1) / curve_radius
         x1 = max(0, min(left.width - 1, left.width - blend_width + alpi))
@@ -109,7 +109,7 @@ class CreateCubeIMG:
       if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position = [0.010, 4]
       elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position = [0.0225, 3]
       elif inSize[0] >= 1280 or inSize[1] >= 1080 : pv, correct_position = [0.045, 3]
-      else: pv, correct_position= [0.09, 2]
+      else: pv, correct_position= [0.071, 2]
       createcube = ConvertDetails( imgIn, imgOut, self.progresswindow, self.create_process, self.percentage, pv)
       progress_value, packsky = [(createcube.convertBack()),(PackingPack)]
       
@@ -127,9 +127,15 @@ class CreateCubeIMG:
           if name_map[row][col] != "":
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
-      self.mergeskyedges(correct_position, createcube, progress_value, pv).save(save_merged)
-      cropmergedimage(packsky.old_names, save_merged)
-      packsky().ZipMcpackOrBoth(self.mergejavasky()).CleanUp()
+      get_remaining_progress = 100-progress_value
+      divide_remaining_progress = get_remaining_progress/3
+      for remaining_process in range(1,5):
+        if remaining_process == 4: sleep(1)
+        else:
+          createcube.CurrentProgress(progress_value+divide_remaining_progress*remaining_process)
+          if remaining_process == 1: self.mergeskyedges(correct_position).save(save_merged)
+          if remaining_process == 2: cropmergedimage(packsky.old_names, save_merged)
+          if remaining_process == 3: packsky().ZipMcpackOrBoth(self.mergejavasky()).CleanUp()
     except IndexError: self.noimagehandler()
     except _tkinter.TclError: pass
 
@@ -188,7 +194,8 @@ class ConvertDetails(CreateCubeIMG):
     return current_percent
 
   def CurrentProgress(self, current_percent):
-    pross_interval = current_percent+self.pv
+    percent_interval = self.pv
+    pross_interval = current_percent+percent_interval
     current_percent = pross_interval
     self.percentage.set(str(int(current_percent))+"%")
     self.create_process['value']=current_percent

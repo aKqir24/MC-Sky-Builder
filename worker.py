@@ -169,8 +169,10 @@ class PackingPack:
   
   def CleanUp(self):
     print("Cleaning Up '%TEMP%' files")
-    rmtree(tempdir)
-    mkdir(tempdir)
+    if path.exists(tempdir[:-1]):
+      rmtree(tempdir[:-1])
+      mkdir(tempdir[:-1])
+    else: pass
     return self
 
   def ZipMcpackOrBoth(self, mergejavasky):
@@ -199,6 +201,9 @@ class PackingPack:
         copy(tempdir+sky_names[0], tempdir+path_mcpack+"\\"+sky_names[1])
       self.MoveToOut(mcpack_folder)
     
-    if readconfig()[2] == False and readconfig()[3] == False: move(tempdir[:-1], readconfig()[1])
+    if readconfig()[2] == False and readconfig()[3] == False: 
+      output_folder = readconfig()[1]+"/MC-Sky-Builder"
+      if path.exists(output_folder): rmtree(output_folder)
+      copytree(tempdir, output_folder)
     
     return self

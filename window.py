@@ -44,6 +44,9 @@ class ButtonsCommands:
           mainwindow.mainloop()
 
   def launch_create_sky():
+    def on_closing():
+      running = False  # Stop the loop
+      progresswindow.destroy()    # Close the top-level window
     try:
       percentage = StringVar()
       progresswindow = Toplevel()
@@ -56,6 +59,7 @@ class ButtonsCommands:
       create_process = Progressbar(progresswindow, length=338)
       Label(progresswindow, bg='#283149', textvariable=percentage, fg=f).place(x=380/2-15, y=50)
       create_process.place(x=20, y=20)
+      progresswindow.protocol("WM_DELETE_WINDOW", on_closing)
       processcubeimg = CreateCubeIMG(progresswindow, create_process, percentage)
       Thread(target=processcubeimg.getcreatesky).start()
       Thread(target=processcubeimg.loadingtitle).start()

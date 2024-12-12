@@ -12,7 +12,7 @@ from os import getenv, path, remove as rm, mkdir, makedirs, rename
 dsktp_regkey = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
 font_details = [(ImageFont.truetype("res\\noto_sans.ttf", 8).getname()[1], 8), ('Segoe UI',10,'normal')] 
 config_dir = getenv('APPDATA')+'\\mcskymaker\\settings.json' 
-tempdir = getenv('TEMP')+'\\cspr\\'
+tempdir = getenv('TEMP')+'\\MC-Sky-Builder\\'
 image_details = []
 rel = 'flat'
 
