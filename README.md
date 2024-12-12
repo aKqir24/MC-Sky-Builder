@@ -13,26 +13,35 @@
 
 ![Screenshot_2024-08-10_19-22-46](https://github.com/user-attachments/assets/84079ede-8d6d-489f-beb2-c459c7aa0290)
 
-### Setup
+## Setup
 The program was only compiled in windows 10 and may not work in some systems, these the methods to get it running. Also do not forget to install the dependencies when compiling from source.
 
 - **For Windows**
     - Just simply download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and double click the `window.exe` to start the program.
 
 - **For Linux**
-    - Dependencies
-        - python
-        - wine
-        - pillow
-        - numpy
+    - Install `wine` in your linux machine then download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and launch it by `wine '/path /to /windows.exe'`.
 
-    - Here is the compilation `script`:
-        ```bash
-        git clone https://github.com/aKqir24/MC-Sky-Builder.git
-        cd MC-Sky-Builder
-        ./wine-run.sh
-        ```
-### Usage
+## Compiling
+- __Dependencies__
+    - *python*
+    - *pillow*
+    - *numpy*
+    
+- For `Windows` here it the compilation `commands`:
+    ```cmd
+    git clone https://github.com/aKqir24/MC-Sky-Builder.git
+    cd MC-Sky-Builder
+    python window.py
+    ```
+
+- For `Linux` you might need `wine` installed:
+    ```bash
+    git clone https://github.com/aKqir24/MC-Sky-Builder.git
+    cd MC-Sky-Builder
+    ./wine-run.sh
+    ```
+## Usage
 1. First Open an image by pressing the open button
 2. Setup the Settings like the Output Folder, the sky overlay resolution and more...
 3. Wait for it to reach 100%

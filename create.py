@@ -15,7 +15,7 @@ class CreateCubeIMG:
     self.percentage = percentage
     self.progresswindow = progresswindow  
     self.create_process = create_process
-
+    
   noimagehandler = lambda self: ConvertDetails.getimageError(self)
 
   def loadingtitle(self):

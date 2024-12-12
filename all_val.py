@@ -6,10 +6,11 @@
 
 from time import sleep
 from json import dump, load
+from PIL import Image, ImageFont, ImageTk
 from os import getenv, path, remove as rm, mkdir, makedirs, rename
 
 dsktp_regkey = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
-font_details = [('Noto Sans',8,'normal'), ('Segoe UI',10,'normal')] 
+font_details = [(ImageFont.truetype("res\\noto_sans.ttf", 8).getname()[1], 8), ('Segoe UI',10,'normal')] 
 config_dir = getenv('APPDATA')+'\\mcskymaker\\settings.json' 
 tempdir = getenv('TEMP')+'\\cspr\\'
 image_details = []

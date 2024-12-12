@@ -2,11 +2,11 @@
 from all_val import *
 from tkinter import Tk, Button
 from tkinter.ttk import Progressbar
-from subprocess import Popen as showfolder
+from subprocess import Popen as showfolder, run
 from worker import GetImageDetails, filedialog, Toplevel, Label, StringVar
 from settings import SettingsWindow, Frame, BooleanVar, Thread, Image, ImageTk, CreateCubeIMG, load, resetto, _tkinter
 
-resetto().makethetempdir().setdefaults().installfonts()
+resetto().makethetempdir().setdefaults()
 
 # mainwindow ( Main Window Of The Program )
 mainwindow = Tk()

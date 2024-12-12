@@ -10,11 +10,9 @@
 
 import winreg
 from all_val import *
-from PIL import Image, ImageTk
 from uuid import uuid4 as generate_random_uuid 
 from shutil import copytree, copy, move, rmtree, make_archive
 from tkinter import filedialog, Toplevel, Label, StringVar, messagebox, _tkinter
-
 
 class GetImageDetails:
   def __init__(self, imgpath):
@@ -67,11 +65,15 @@ class ToDoDuringStartup:
                 "Convert_To_Mcpack": False, "Outputfolder_Path": userdesktop }
           readusingjson = dump(configuration, writeconfig, indent=4)
     return self
-  
-  def installfonts(self):
-    font_dir = "C:\\windows\\Fonts\\NotoSans-Regular.ttf"
-    if path.exists(font_dir): pass
-    else: copy('res\\NotoSans-Regular.ttf', font_dir)
+
+    if path.exists("C:\\windows\\Fonts\\noto_sans.ttf"): pass
+    else:
+      font_path = "res\\noto_sans.ttf"
+      font_file_name = path.basename(font_path)
+      run(["cmd", "/c", f"copy {font_path} {path.join(r"C:\Windows\Fonts", font_file_name)}"], check=True)
+      font_name = font_file_name.split('.')[0]
+      run(["cmd", "/c", f'reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts" /v "{font_name} (TrueType)" /t REG_SZ /d "{font_file_name}"'], check=True)
+      subprocess.run(["cmd", "/c", "RUNDLL32.exe USER32.DLL,UpdatePerUserSystemParameters"], check=True)
     return self
 
 class ConfigManagement: 
