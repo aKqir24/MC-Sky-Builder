@@ -92,15 +92,15 @@ class SettingsWindow:
 
           def optionbuttons():
             Button(settingswindow, command=settingbuttons.ask_output_folder, text="CHANGE", relief=rel, 
-                   padx= 5, pady= 1.4, font= font_details[0], bg= ab, fg= f, bd=1).place(x=10, y=25.2)
+                   padx= 5, pady= 1.5, font= font_details[0], bg= ab, fg= f, bd=1).place(x=10, y=25.2)
             Button(settingswindow, command=settingbuttons.closesettings, text="CLOSE", relief=rel, 
                    padx= 8, pady= 0.1, font= font_details[0], bg= ab, fg= f, bd=1).place(x=324.5, y=148)
             Button(settingswindow, command=settingbuttons.resetsettings, text="RESET", relief=rel, 
                    padx= 8, pady= 0.1, font= font_details[0], bg= ab, fg= f, bd=1).place(x=203, y=148)
-            Button(settingswindow, command=settingbuttons.aboutprogram, text="ABOUT", relief=rel, 
-                   padx= 8, pady= 0.1, font= font_details[0], bg= ab, fg= f, bd=1).place(x=10, y=148)
+          # Button(settingswindow, command=settingbuttons.aboutprogram, text="ABOUT", relief=rel, 
+          #        padx= 8, pady= 0.1, font= font_details[0], bg= ab, fg= f, bd=1).place(x=10, y=148)
             Button(settingswindow, command=settingbuttons.customoutres, text="OTHER", relief=rel, 
-                   padx= 5, pady= 1.4, font= font_details[0], bg= ab, fg= f, bd=1).place(x=160, y=70)
+                   padx= 5, pady= 1.5, font= font_details[0], bg= ab, fg= f, bd=1).place(x=160, y=70)
             apply = Button( settingswindow, command=settingbuttons.applysettings, text="APPLY", 
                     relief=rel, padx= 8, pady= 0.1, font=font_details[0], bg= ab, fg= f, bd=1 )
             apply.place(x=262.5, y=148)
