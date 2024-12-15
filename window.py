@@ -10,7 +10,7 @@ resetto().makethetempdir().setdefaults()
 
 # mainwindow ( Main Window Of The Program )
 mainwindow = Tk()
-mainwindow.geometry('374x266')
+mainwindow.geometry('376x268')
 mainwindow.title("MC Sky Builder")
 mainwindow.config(background="#283149")
 mainwindow.iconbitmap('res\\icon.ico')
@@ -18,8 +18,8 @@ mainwindow.resizable(False, False)
 
 # mainwindow ( Labels/Frames Of The Path & Location )
 Imageinput = Label( mainwindow, text="Image Folder :", bg="#283149", fg=f, pady= 1, bd=0 )
-Fileprevb= Frame( mainwindow, bg="#303b58", height= 184, width= 350, bd=0 )
-Fileprev = Frame( mainwindow, bg="#404b69", height= 180, width= 346, bd=0 )
+Fileprevb= Frame( mainwindow, bg="#303b58", height= 184, width= 354, bd=0 )
+Fileprev = Frame( mainwindow, bg="#404b69", height= 180, width= 350, bd=0 )
 Imageprev = Label( Fileprev, bg="#404b69", justify='left')
 Fileprev.place(x=14, y= 14)
 Fileprevb.place(x=12, y= 12)
@@ -40,7 +40,7 @@ class ButtonsCommands:
           Imageinput.config(text="Image Folder : "+the_imagefolder_path[index:index+45]+"...")
           with Image.open(the_imagefolder_path).resize((368,218)) as intputimg:
             chosen_img = ImageTk.PhotoImage(intputimg)
-            Imageprev.config(image=chosen_img, height= 210, width= 346)
+            Imageprev.config(image=chosen_img, height= 210, width= 350)
           mainwindow.mainloop()
 
   def launch_create_sky():

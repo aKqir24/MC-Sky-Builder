@@ -10,7 +10,7 @@ from PIL import Image, ImageFont, ImageTk
 from os import getenv, path, remove as rm, mkdir, makedirs, rename
 
 dsktp_regkey = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
-font_details = [(ImageFont.truetype("res\\noto_sans.ttf", 8).getname()[1], 8), ('Segoe UI',10,'normal')] 
+font_details = [(ImageFont.truetype("res\\noto_sans.ttf", 9).getname()[1], 8), ('Segoe UI',10,'normal')] 
 config_dir = getenv('APPDATA')+'\\mcskymaker\\settings.json' 
 tempdir = getenv('TEMP')+'\\MC-Sky-Builder\\'
 image_details = []
@@ -22,7 +22,7 @@ db, b, b2, f, ab = [ "#283149","#404b69", "#333e5f", "#dbedf3", "#00818a" ]
 yp, x, y , yb = [ 225, 15, 3, 2 ]
 
 # output configuration 
-ext, blend_width, curve_radius = [".png", 42, 2]
+ext, curve_radius = [".png", 2]
 
 # current config's
 def readconfig():

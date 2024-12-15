@@ -10,6 +10,7 @@
 
 import winreg
 from all_val import *
+from time import strftime
 from uuid import uuid4 as generate_random_uuid 
 from shutil import copytree, copy, move, rmtree, make_archive
 from tkinter import filedialog, Toplevel, Label, StringVar, messagebox, _tkinter
@@ -131,7 +132,7 @@ class SettingsMultiOptions:
     
 class MkJsonPackDetailsFile:
   #GetImageDetails.getimagename(self)
-  pack_des = "This SkyOverlay Was Made By The Help Of §cAkqir's (§bMC §fSky Builder) Software..." 
+  pack_des = "This SkyOverlay Was Made By The Help Of §cAkqir's §f(§bMC §fSky Builder) Software..." 
   def makethemanifest(self):
     uuid1 = generate_random_uuid()
     uuid2 = generate_random_uuid()
@@ -155,7 +156,7 @@ class MkJsonPackDetailsFile:
   makepackicon = lambda self, image_right, pack_folder, pack_icon_name: copy(tempdir+image_right, tempdir+pack_folder+pack_icon_name)
 
 class PackingPack:
-  old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Bottom.png",  "Top.png"]
+  old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Top.png", "Bottom.png"]
   new_names = ["cubemap_0.png", "cubemap_1.png", "cubemap_2.png", "cubemap_3.png", "cubemap_4.png", "cubemap_5.png"]
 
   def MoveToOut(self, pack_name):
@@ -202,7 +203,7 @@ class PackingPack:
       self.MoveToOut(mcpack_folder)
     
     if readconfig()[2] == False and readconfig()[3] == False: 
-      output_folder = readconfig()[1]+"/MC-Sky-Builder"
+      output_folder = readconfig()[1]+"/MC-Sky-Builder/"+strftime("(%b-%d-%Y) %H-%M-%S")
       if path.exists(output_folder): rmtree(output_folder)
       copytree(tempdir, output_folder)
     

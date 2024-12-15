@@ -37,7 +37,7 @@ class CreateCubeIMG:
     except RuntimeError: pass
     except ValueError: pass
   
-  def mergeskyedges(self, correct_position):
+  def mergeskyedges(self, correct_position, blend_width):
     # Merge sky edge images into a single image to blend the pixels
     top = Image.open(tempdir+'Top'+ext).rotate(-180)
     front = Image.open(tempdir+'Front'+ext)
@@ -63,8 +63,8 @@ class CreateCubeIMG:
   def mergejavasky(self):
     filenames = PackingPack.old_names
     temp_images = [
-      Image.open(tempdir + filenames[4]),  # bottom
-      Image.open(tempdir + filenames[5]),  # top
+      Image.open(tempdir + filenames[5]),  # bottom
+      Image.open(tempdir + filenames[4]),  # top
       Image.open(tempdir + filenames[0]),  # back
       Image.open(tempdir + filenames[1]),  # left
       Image.open(tempdir + filenames[2]),  # front
@@ -93,11 +93,14 @@ class CreateCubeIMG:
         (0, img_res * 2, img_res, img_res * 3) ]
       
       for i ,croped_coords in enumerate(coords):
-        name_index = [5, 2, 4]
+        name_index = [4, 2, 5]
         indexed_names = tempdir+old_names[name_index[i]]
         cropped_img = merged_image.crop(croped_coords)
         rm(indexed_names)
-        cropped_img.save(indexed_names)
+        if i == 2: 
+          print("Yes")
+          cropped_img.rotate(180).save(indexed_names)
+        else: cropped_img.save(indexed_names)
       rm(save_merged)
 
     try:
@@ -106,10 +109,10 @@ class CreateCubeIMG:
       inSize = imgIn.size 
       imgOut = Image.new("RGB",(inSize[0],int(inSize[0]*3/4)),"black")
       # Set the progress_bar parameters based on input image size
-      if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position = [0.010, 4]
-      elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position = [0.0225, 3]
-      elif inSize[0] >= 1280 or inSize[1] >= 1080 : pv, correct_position = [0.045, 3]
-      else: pv, correct_position= [0.071, 2]
+      if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position, blend_width = [0.010, 4, 55]
+      elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position, blend_width = [0.0225, 3, 50]
+      elif inSize[0] >= 1280 or inSize[1] >= 1080 : pv, correct_position = [0.045, 3, 46]
+      else: pv, correct_position, blend_width = [0.071, 2, 42]
       createcube = ConvertDetails( imgIn, imgOut, self.progresswindow, self.create_process, self.percentage, pv)
       progress_value, packsky = [(createcube.convertBack()),(PackingPack)]
       
@@ -133,7 +136,7 @@ class CreateCubeIMG:
         if remaining_process == 4: sleep(1)
         else:
           createcube.CurrentProgress(progress_value+divide_remaining_progress*remaining_process)
-          if remaining_process == 1: self.mergeskyedges(correct_position).save(save_merged)
+          if remaining_process == 1: self.mergeskyedges(correct_position, blend_width).save(save_merged)
           if remaining_process == 2: cropmergedimage(packsky.old_names, save_merged)
           if remaining_process == 3: packsky().ZipMcpackOrBoth(self.mergejavasky()).CleanUp()
     except IndexError: self.noimagehandler()
