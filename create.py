@@ -97,10 +97,12 @@ class CreateCubeIMG:
         indexed_names = tempdir+old_names[name_index[i]]
         cropped_img = merged_image.crop(croped_coords)
         rm(indexed_names)
-        if i == 2: 
-          print("Yes")
+        if i == 2 or i == 0 and readconfig()[3] == True: 
           cropped_img.rotate(180).save(indexed_names)
-        else: cropped_img.save(indexed_names)
+          print("Yes")
+        else: 
+          print("NO")
+          cropped_img.save(indexed_names)
       rm(save_merged)
 
     try:
@@ -109,8 +111,8 @@ class CreateCubeIMG:
       inSize = imgIn.size 
       imgOut = Image.new("RGB",(inSize[0],int(inSize[0]*3/4)),"black")
       # Set the progress_bar parameters based on input image size
-      if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position, blend_width = [0.010, 4, 55]
-      elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position, blend_width = [0.0225, 3, 50]
+      if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position, blend_width = [0.010, 6, 55]
+      elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position, blend_width = [0.0225, 4, 50]
       elif inSize[0] >= 1280 or inSize[1] >= 1080 : pv, correct_position = [0.045, 3, 46]
       else: pv, correct_position, blend_width = [0.071, 2, 42]
       createcube = ConvertDetails( imgIn, imgOut, self.progresswindow, self.create_process, self.percentage, pv)

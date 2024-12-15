@@ -136,7 +136,7 @@ class SettingsOptionsButtons:
       ConfigManagement().OutPathConfigValue(the_outputfolder_path)
       self.settingswindow.focus_set()
       for index in range(0, len(the_outputfolder_path), 1000):
-        self.outputfolderlabel.config(text=the_outputfolder_path[index:index+49]+"...")
+        self.outputfolderlabel.config(text=the_outputfolder_path[index:index+45]+"...")
           
     def customoutres(self):
         chosen_res = simpledialog.askinteger( title="", prompt="", minvalue=1 )
@@ -157,7 +157,7 @@ class SettingsOptionsButtons:
       def savelabel():
         setsvlb = Label(self.settingswindow, bg=db, fg=f, text="Saved!!")
         setsvlb.place(x=271, y=125)
-        time_sleep(3)
+        time_sleep(2)
         setsvlb.destroy()
 
       Thread(target=ConfigManagement().writesettingsconfig).start()
