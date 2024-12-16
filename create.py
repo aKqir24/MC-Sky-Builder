@@ -24,7 +24,7 @@ class CreateCubeIMG:
       sleep(1)
       while int(str(self.percentage.get().replace("%", ""))) < 100:
         for tlno in range(0, 7):
-          if int(str(self.percentage.get().replace("%", ""))) >= 99: 
+          if int(str(self.percentage.get().replace("%", ""))) <= 99: 
             self.progresswindow.destroy()
             messagebox.showinfo(title="Finished!!", message="Sky `Building` was a success :D")
             break
@@ -77,6 +77,7 @@ class CreateCubeIMG:
     for img_i, temp_image in enumerate(temp_images):
       
       # Top row (bottom, top, back)
+      if temp_image == 1: temp_image = temp_image.rotate(-180)
       if img_i < 3: x_offset, y_offset = [(width * img_i), 0]
       # Bottom row (left, front, right)
       else: x_offset, y_offset = [(width * (img_i - 3)), height] 
@@ -99,10 +100,7 @@ class CreateCubeIMG:
         rm(indexed_names)
         if i == 2 or i == 0 and readconfig()[3] == True: 
           cropped_img.rotate(180).save(indexed_names)
-          print("Yes")
-        else: 
-          print("NO")
-          cropped_img.save(indexed_names)
+        else: cropped_img.save(indexed_names)
       rm(save_merged)
 
     try:
