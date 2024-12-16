@@ -1,7 +1,7 @@
 """ 
     Worker works around with Files, and Directory
 
- - setting the cofiguration file, ui, and directory
+ - setting the configuration file, ui, and directory
  - creating or preparing the temporary files needed
  - managing the filenames, extension and other details
  - zipping the complete output of create
@@ -9,22 +9,21 @@
 """
 
 import winreg
-from all_val import *
-from time import strftime
-from uuid import uuid4 as generate_random_uuid 
+from all_val import * 
 from shutil import copytree, copy, move, rmtree, make_archive
 from tkinter import filedialog, Toplevel, Label, StringVar, messagebox, _tkinter
 
 class GetImageDetails:
   def __init__(self, imgpath):
     self.imgpath = imgpath
-    
+
+  #? Get the filename of an image 
   def getimagename(self):
     imgext = GetImageDetails.getimgext(self)
     rmpackex = self.imgpath.replace('jpg', 'jpeg').replace(imgext, "")
+
     # Remove The dirname to get the filename
-    default_index = 1
-    getimgpath = rmpackex
+    default_index, getimgpath = ( 1, rmpackex )
     imgpathfori = getimgpath+" "
     while getimgpath[:-default_index].startswith('/') == False:
       cl = default_index+1
@@ -36,6 +35,7 @@ class GetImageDetails:
         image_details.append(imagefilename)
         break
   
+  #? Get the file image extension/format
   def getimgext(self):
     image_details.append(self.imgpath)
     imgext = Image.open(self.imgpath).format
@@ -46,19 +46,16 @@ class GetImageDetails:
     return theimgext
 
 class ToDoDuringStartup:
-  config_folder = config_dir.replace("\\settings.json", "")
 
+  #? Make a temporary working folder
   def makethetempdir(self):
-    if path.exists(tempdir): pass
-    else: mkdir(tempdir)
-    if path.exists(self.config_folder): pass
-    else: mkdir(self.config_folder)
+    if not path.exists(tempdir): mkdir(tempdir)
+    if not path.exists(self.config_folder): mkdir(self.config_folder)
     return self
           
-  # Set The Default Output Folder Path
+  #? Set the default output folder path
   def setdefaults(self):
-    if path.exists(config_dir):pass
-    else:
+    if not path.exists(config_dir):
       with winreg.OpenKey(winreg.HKEY_CURRENT_USER, dsktp_regkey) as key:
         userdesktop = path.expandvars( winreg.QueryValueEx(key, "Desktop")[0] ).replace("\\", "/")
         with open(config_dir, 'w') as writeconfig:
@@ -66,25 +63,16 @@ class ToDoDuringStartup:
                 "Convert_To_Mcpack": False, "Outputfolder_Path": userdesktop }
           readusingjson = dump(configuration, writeconfig, indent=4)
     return self
-
-    if path.exists("C:\\windows\\Fonts\\noto_sans.ttf"): pass
-    else:
-      font_path = "res\\noto_sans.ttf"
-      font_file_name = path.basename(font_path)
-      run(["cmd", "/c", f"copy {font_path} {path.join(r"C:\Windows\Fonts", font_file_name)}"], check=True)
-      font_name = font_file_name.split('.')[0]
-      run(["cmd", "/c", f'reg add "HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Fonts" /v "{font_name} (TrueType)" /t REG_SZ /d "{font_file_name}"'], check=True)
-      subprocess.run(["cmd", "/c", "RUNDLL32.exe USER32.DLL,UpdatePerUserSystemParameters"], check=True)
-    return self
-
+    
 class ConfigManagement: 
-  # Get the config value then update to a dict{}
+  #? Get the config value then update to a dict{}
   ImgResConfigValue = lambda self, imgresvalue : config_dict.update({'image_res': imgresvalue})
   CnvrtToMcpackValue = lambda self, chmcpackval: config_dict.update({'mc_convert': chmcpackval}) 
   CnvrtToJavZipValue = lambda self, chjvzipval: config_dict.update({'jv_convert': chjvzipval})
   OutPathConfigValue = lambda self, outpathvalue: config_dict.update({'output_path': outpathvalue})
   CustomImgResConfigValue = lambda self, imgresvalue: config_dict.update({'image_custom_res': imgresvalue})
-    
+
+  #? Update the config by writing it!!  
   def writesettingsconfig(self): 
     try:
       if config_dict['output_path'] == "": 
@@ -105,11 +93,13 @@ class ConfigManagement:
     config_dict.clear()
   
 class SettingsMultiOptions:
+
+  #* Simply send the values of your options in the config
     def __init__(self, imgresolution, packzipval, packmcpackval ):
       self.packzipval = packzipval
       self.imgresolution = imgresolution
       self.packmcpackval = packmcpackval
-     
+
     def outputres(self):
       chosen_res = self.imgresolution.get()
       if chosen_res == int(0): chosen_res = 256
@@ -131,35 +121,39 @@ class SettingsMultiOptions:
       ConfigManagement().CnvrtToMcpackValue(thepackmcpackchvalue)
     
 class MkJsonPackDetailsFile:
-  #GetImageDetails.getimagename(self)
-  pack_des = "This SkyOverlay Was Made By The Help Of §cAkqir's §f(§bMC §fSky Builder) Software..." 
+  pack_des = "This SkyOverlay Was Made By Using §cAkqir's §f(§bMC §fSky Builder) Software..." 
   def makethemanifest(self):
-    uuid1 = generate_random_uuid()
-    uuid2 = generate_random_uuid()
-    # For Bedrock Write The Manifest File 
+    from uuid import uuid4 as generate_random_uuid 
+
+    #? For Bedrock Write The Manifest File 
     with open(tempdir+image_details[2]+".mcpack"+"\\"+'manifest.json', 'w') as writejson:
       manifestfile =  { "format_version": 1, "header": { 
                         "description": MkJsonPackDetailsFile.pack_des,
-                        "name": image_details[2]+" (Sky Overlay)", "uuid": str(uuid1), 
+                        "name": image_details[2]+" (Sky Overlay)", "uuid": str(generate_random_uuid()), 
                         "version": [1, 0, 0], "min_engine_version": [1, 12, 0]}, "modules": [ { 
-                        "description": "", "type": "resources", "uuid": str(uuid2), "version": [1, 0, 0] } ] }
+                        "description": "", "type": "resources", "uuid": str(generate_random_uuid()),
+                        "version": [1, 0, 0] } ] }
       dump(manifestfile, writejson, sort_keys=True, skipkeys=1, indent=3)
     return self
 
   def makethepackmeta(self):
+    #? For Java Write The Meta File 
     with open(tempdir+image_details[2]+".zip"+"\\"+'pack.mcmeta', 'w') as writepckmeta:
       pack_des = MkJsonPackDetailsFile.pack_des.replace("§c", "").replace("§b", "").replace("§f", "")
       packmeta = { "pack": { "pack_format": 1, "description": pack_des } }
       dump(packmeta, writepckmeta, sort_keys=True, skipkeys=1, indent=3)
     return self 
-    
-  makepackicon = lambda self, image_right, pack_folder, pack_icon_name: copy(tempdir+image_right, tempdir+pack_folder+pack_icon_name)
+
+  # TODO: Enhance the pack_icon maker  
+  def makepackicon (self, image_right, pack_folder, pack_icon_name):
+    copy(tempdir+image_right, tempdir+pack_folder+pack_icon_name)
 
 class PackingPack:
   old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Top.png", "Bottom.png"]
   new_names = ["cubemap_0.png", "cubemap_1.png", "cubemap_2.png", "cubemap_3.png", "cubemap_4.png", "cubemap_5.png"]
 
   def MoveToOut(self, pack_name):
+    #? Move the output_image in the output directory
     print("Moving Sky To Pack Folder...")
     path_finished = tempdir+pack_name+"\\"
     output_path = readconfig()[1].replace("/", "\\")+"\\"+pack_name
@@ -169,24 +163,23 @@ class PackingPack:
     return self
   
   def CleanUp(self):
+    #! Deletes TEMP files when done or canceled!!
     print("Cleaning Up '%TEMP%' files")
     if path.exists(tempdir[:-1]):
       rmtree(tempdir[:-1])
       mkdir(tempdir[:-1])
-    else: pass
     return self
 
   def ZipMcpackOrBoth(self, mergejavasky):
+    #? Identifies on what your packing choice in the config
     if readconfig()[2] == True: 
       zip_folder = image_details[2]+".zip"
       path_zip = zip_folder+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
-      print("Converting to Zip (Java Option!!)...")
-      makedirs(tempdir+path_zip)
+      print("Converting to Zip (Java Option!!)...") ; makedirs(tempdir+path_zip)
       MkJsonPackDetailsFile().makethepackmeta().makepackicon(self.old_names[3], zip_folder, "\\pack.png")
       mergejavasky.save(tempdir+path_zip+'\\'+'cloud1.png')
       for mv_i in range(1,9):
-        if mv_i == 5: pass
-        else: 
+        if not mv_i == 5:
           sky_properties = "sky"+str(mv_i)+".properties"
           copy("res\\mcpatcher\\sky\\world0\\"+sky_properties, tempdir+path_zip+"\\"+sky_properties)
       self.MoveToOut(zip_folder)
@@ -194,8 +187,7 @@ class PackingPack:
     if readconfig()[3] == True: 
       mcpack_folder = image_details[2]+".mcpack"
       path_mcpack = mcpack_folder+"\\textures\\environment\\overworld_cubemap"
-      print("Converting to Mcpack (Bedrock Option!!)...")
-      makedirs(tempdir+path_mcpack)
+      print("Converting to Mcpack (Bedrock Option!!)...") ; makedirs(tempdir+path_mcpack)
       MkJsonPackDetailsFile().makethemanifest().makepackicon(self.old_names[3], mcpack_folder, "\\pack_icon.png")
       for move_no in range (0, 6): 
         sky_names = [self.old_names[move_no], self.new_names[move_no]]
