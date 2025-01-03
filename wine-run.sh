@@ -1,7 +1,7 @@
 #!/bin/bash
 
    #------------------------------------------------------------------------------#
-   # For Linux Enviroments, You Need To Run This In Wine Inside The Source Folder # 
+   # For Linux Environments, You Need To Run This In Wine Inside The Source Folder # 
    #------------------------------------------------------------------------------#
 
 # Errors & Fixes Sources Strings!!

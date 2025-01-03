@@ -24,10 +24,11 @@ yp, x, y , yb = [ 225, 15, 3, 2 ]
 ext, curve_radius = [".png", 2]
 
 # font verification
-font_details = [(ImageFont.truetype('res\\noto_sans.ttf', 9).getname()[1], 8), ('Segoe UI',10,'normal')] 
+font_details = [(ImageFont.truetype('resource\\noto_sans.ttf', 9).getname()[1], 8), ('Segoe UI',10,'normal')] 
 
 #? Identify the 'OS' your using!!
 if name == "nt":
+  print("Your On Windows!!")
   tempdir = getenv('TEMP')+'\\MC-Sky-Builder\\'
   config_dir = getenv('APPDATA')+'\\mcskymaker\\settings.json' 
   config_folder = config_dir.replace("\\settings.json", "")
@@ -38,6 +39,7 @@ if name == "nt":
     return userdesktop
     
 elif name == "posix":
+  print("Your On Linux!!")
   tempdir = '~/.cache'
   config_dir = '~/.config/mcskymaker/settings.json'
   config_folder = config_dir.replace("/settings.json", "")
