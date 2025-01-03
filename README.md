@@ -1,6 +1,6 @@
 
-<div align="center"><img src="res/icon.png" height="225" ></img>
-<h1>MC-Sky-Builder (Unfinished)</h1>
+<div align="center"><img src="res/icon.png" height="200" ></img>
+<h1>MC-Sky-Builder</h1>
 <d>A Program I Made That, Turns Your Choosen Image Into A Sky Overlay Pack Or Cubemap, And Exports It For Both For Java & Bedrock(Windows 10 Edition) Platforms.</d>
 </div>
 

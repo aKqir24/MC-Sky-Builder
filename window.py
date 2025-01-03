@@ -1,6 +1,6 @@
 # Program Information
 __author__: "Akqir"
-__version__: "1.1.0"
+__version__: "1.2.0"
 __program_name__: "MC-Sky-Builder"
 __description__: "Converts an Image into a sky-overlay pack for minecraft..."
 
