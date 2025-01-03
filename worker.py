@@ -50,7 +50,7 @@ class ToDoDuringStartup:
   #? Make a temporary working folder
   def makethetempdir(self):
     if not path.exists(tempdir): mkdir(tempdir)
-    if not path.exists(self.config_folder): mkdir(self.config_folder)
+    if not path.exists(config_folder): mkdir(config_folder)
     return self
           
   #? Set the default output folder path
@@ -181,7 +181,7 @@ class PackingPack:
       for mv_i in range(1,9):
         if not mv_i == 5:
           sky_properties = "sky"+str(mv_i)+".properties"
-          copy("res\\mcpatcher\\sky\\world0\\"+sky_properties, tempdir+path_zip+"\\"+sky_properties)
+          copy("resource\\mcpatcher\\sky\\world0\\"+sky_properties, tempdir+path_zip+"\\"+sky_properties)
       self.MoveToOut(zip_folder)
 
     if readconfig()[3] == True: 

@@ -1,6 +1,0 @@
-VSVersionInfo(
-    ffi=(
-        (1, 2, 0, 0),  # FileVersion
-        (1, 2, 0, 0),  # ProductVersion
-    ),
-)
