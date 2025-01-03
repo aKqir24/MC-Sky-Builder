@@ -24,7 +24,7 @@ yp, x, y , yb = [ 225, 15, 3, 2 ]
 ext, curve_radius = [".png", 2]
 
 # font verification
-font_details = [(ImageFont.truetype(resource_folder('res\\noto_sans.ttf'), 9).getname()[1], 8), ('Segoe UI',10,'normal')] 
+font_details = [(ImageFont.truetype('res\\noto_sans.ttf', 9).getname()[1], 8), ('Segoe UI',10,'normal')] 
 
 #? Identify the 'OS' your using!!
 if name == "nt":
