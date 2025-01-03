@@ -16,7 +16,7 @@ class SettingsWindow:
     settingswindow.geometry('393x181')
     settingswindow.config(background=db)
     settingswindow.resizable(False, False)
-    settingswindow.iconbitmap('res\\title\\manufacturing.ico')
+    settingswindow.iconbitmap('resource\\title\\manufacturing.ico')
     self.settingsbutton.config(command=settingswindow.focus_set)
 
     def scalelabel():
