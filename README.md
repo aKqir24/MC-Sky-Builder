@@ -17,10 +17,10 @@
 The program was only compiled in windows 10 and may not work in some systems, these the methods to get it running. Also do not forget to install the dependencies when compiling from source.
 
 - **For Windows**
-    - Just simply download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and double click the `MC_Sky_Builder_V1.exe` to start the program.
+    - Just simply download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and double click the `MC_Sky_Builder.exe` to start the program.
 
 - **For Linux**
-    - Install `wine` in your linux machine then download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and launch it by `wine '/path /to /MC_Sky_Builder_V1.exe'`.
+    - Install `wine` in your linux machine then download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and launch it by `wine '/path /to /MC_Sky_Builder.exe'`.
 
 ## Compiling
 In order for this to work you need `pyhon`, `pillow`, `numpy` and if your in a linux distro you need `wine` installed with the previous dependencies I mentioned installed inside in `wine`.
@@ -34,6 +34,9 @@ In order for this to work you need `pyhon`, `pillow`, `numpy` and if your in a l
     ```
 
 - For `Linux`:
+
+  If don't wanna use wine, just ignore this commands...
+
     ```bash
     git clone https://github.com/aKqir24/MC-Sky-Builder.git
     cd MC-Sky-Builder

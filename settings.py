@@ -1,15 +1,14 @@
 import about
 from all_val import *
-from time import sleep as time_sleep
-from create import Thread, CreateCubeIMG, Image, ImageTk
-from tkinter import Toplevel, Button, Label, Scale, Checkbutton, Frame, simpledialog, messagebox, BooleanVar
+from threading import Thread
+from tkinter import Toplevel, Button, Label, Scale, Checkbutton, Frame, simpledialog, BooleanVar
 from worker import ToDoDuringStartup as resetto, SettingsMultiOptions, ConfigManagement, StringVar, filedialog, winreg, rm, path, load, _tkinter
 
 class SettingsWindow:  
   def __init__ (self, settingsbutton):
     self.settingsbutton = settingsbutton
     
-  # settings (Settings Window Of The Program )
+  #? Window of the program
   def loadsettings(self):
     settingswindow = Toplevel()
     settingswindow.focus_set()
@@ -21,7 +20,7 @@ class SettingsWindow:
     self.settingsbutton.config(command=settingswindow.focus_set)
 
     def scalelabel():
-      # settings ( Resolution Using, Scale Of The Output )
+      # Resolution using, scale of the output
       imgresolution = Scale( settingswindow, to=30, from_=0, length=134, borderwidth=0, showvalue=0, bg=b2, fg=f,
                              width= 10, orient='horizontal', activebackground=ab,sliderlength=20, sliderrelief= rel, 
                              troughcolor=b,resolution=10, highlightbackground=db, highlightcolor=db)
@@ -97,8 +96,8 @@ class SettingsWindow:
                    padx= 8, pady= 0.1, font= font_details[0], bg= ab, fg= f, bd=1).place(x=324.5, y=148)
             Button(settingswindow, command=settingbuttons.resetsettings, text="RESET", relief=rel, 
                    padx= 8, pady= 0.1, font= font_details[0], bg= ab, fg= f, bd=1).place(x=203, y=148)
-          # Button(settingswindow, command=settingbuttons.aboutprogram, text="ABOUT", relief=rel, 
-          #        padx= 8, pady= 0.1, font= font_details[0], bg= ab, fg= f, bd=1).place(x=10, y=148)
+          # TODO: Button(settingswindow, command=settingbuttons.aboutprogram, text="ABOUT", relief=rel, 
+          # TODO:        padx= 8, pady= 0.1, font= font_details[0], bg= ab, fg= f, bd=1).place(x=10, y=148)
             Button(settingswindow, command=settingbuttons.customoutres, text="OTHER", relief=rel, 
                    padx= 5, pady= 1.5, font= font_details[0], bg= ab, fg= f, bd=1).place(x=160, y=70)
             apply = Button( settingswindow, command=settingbuttons.applysettings, text="APPLY", 
@@ -130,16 +129,16 @@ class SettingsOptionsButtons:
     aboutprogram = lambda self:about.aboutWin(self.settingswindow)
 
     def ask_output_folder(self):
-      with winreg.OpenKey(winreg.HKEY_CURRENT_USER, dsktp_regkey) as key:
-        userdesktop = path.expandvars( winreg.QueryValueEx(key, "Desktop")[0] )
+      userdesktop = default_output_path()
       the_outputfolder_path = filedialog.askdirectory( initialdir=userdesktop, title="Select Output Folder" )
       ConfigManagement().OutPathConfigValue(the_outputfolder_path)
       self.settingswindow.focus_set()
       for index in range(0, len(the_outputfolder_path), 1000):
         self.outputfolderlabel.config(text=the_outputfolder_path[index:index+45]+"...")
-          
+
+    # TODO: Improve the simple dialog by making your own      
     def customoutres(self):
-        chosen_res = simpledialog.askinteger( title="", prompt="", minvalue=1 )
+        chosen_res = simpledialog.askinteger( title=" ", prompt="Enter Custom Resolution?", minvalue=256 )
         if chosen_res == None: chosen_res = 256
         ConfigManagement().CustomImgResConfigValue(chosen_res)
         
@@ -157,7 +156,7 @@ class SettingsOptionsButtons:
       def savelabel():
         setsvlb = Label(self.settingswindow, bg=db, fg=f, text="Saved!!")
         setsvlb.place(x=271, y=125)
-        time_sleep(2)
+        sleep(2)
         setsvlb.destroy()
 
       Thread(target=ConfigManagement().writesettingsconfig).start()

@@ -5,10 +5,10 @@
 from __future__ import print_function
 import sys
 from all_val import *
-from threading import Thread
 from math import pi,sin,cos,tan,atan2,hypot,floor
 from numpy import clip, hstack, array, concatenate
-from worker import PackingPack, Image, ImageTk, _tkinter, messagebox
+from worker import PackingPack, _tkinter, messagebox
+from threading import Thread
      
 class CreateCubeIMG:
   def __init__(self, progresswindow, create_process, percentage):
@@ -19,12 +19,12 @@ class CreateCubeIMG:
   noimagehandler = lambda self: ConvertDetails.getimageError(self)
 
   def loadingtitle(self):
-    # Update the title of the progress window during loading
+    #? Update the title of the progress window during loading
     try:
       sleep(1)
       while int(str(self.percentage.get().replace("%", ""))) < 100:
         for tlno in range(0, 7):
-          if int(str(self.percentage.get().replace("%", ""))) <= 99: 
+          if int(str(self.percentage.get().replace("%", ""))) >= 100: 
             self.progresswindow.destroy()
             messagebox.showinfo(title="Finished!!", message="Sky `Building` was a success :D")
             break
@@ -108,13 +108,9 @@ class CreateCubeIMG:
       imgIn = Image.open(image_details[0]) 
       inSize = imgIn.size 
       imgOut = Image.new("RGB",(inSize[0],int(inSize[0]*3/4)),"black")
-      # Set the progress_bar parameters based on input image size
-      if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position, blend_width = [0.010, 6, 55]
-      elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position, blend_width = [0.0225, 4, 50]
-      elif inSize[0] >= 1280 or inSize[1] >= 1080 : pv, correct_position = [0.045, 3, 46]
-      else: pv, correct_position, blend_width = [0.071, 2, 42]
-      createcube = ConvertDetails( imgIn, imgOut, self.progresswindow, self.create_process, self.percentage, pv)
-      progress_value, packsky = [(createcube.convertBack()),(PackingPack)]
+      createcube = ConvertDetails( imgIn, imgOut, self.progresswindow, self.create_process, self.percentage)
+      pv, correct_position, blend_width = createcube.OutputValues(inSize)
+      progress_value, packsky = [(createcube.convertBack(pv)),(PackingPack)]
       
       name_map = [ \
            ["", "", "Top", ""],
@@ -126,16 +122,18 @@ class CreateCubeIMG:
       img_res, out_path, cube_size = [(readconfig()[0]), (readconfig()[1]), (width/4)]
       for row in range(3):
         for col in range(4):
-          createcube.CurrentProgress(progress_value)
+          createcube.CurrentProgress(pv, progress_value)
           if name_map[row][col] != "":
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
+      
+      #? Update the progressbar by the remaining task!!
       get_remaining_progress = 100-progress_value
       divide_remaining_progress = get_remaining_progress/3
       for remaining_process in range(1,5):
         if remaining_process == 4: sleep(1)
         else:
-          createcube.CurrentProgress(progress_value+divide_remaining_progress*remaining_process)
+          createcube.CurrentProgress(pv, progress_value+divide_remaining_progress*remaining_process)
           if remaining_process == 1: self.mergeskyedges(correct_position, blend_width).save(save_merged)
           if remaining_process == 2: cropmergedimage(packsky.old_names, save_merged)
           if remaining_process == 3: packsky().ZipMcpackOrBoth(self.mergejavasky()).CleanUp()
@@ -143,11 +141,10 @@ class CreateCubeIMG:
     except _tkinter.TclError: pass
 
 class ConvertDetails(CreateCubeIMG):
-  def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage, pv):
+  def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage):
     super().__init__(progresswindow, create_process, percentage)
     self.imgIn = imgIn
     self.imgOut = imgOut
-    self.pv = pv
 
   def outImgToXYZ(i,j,face,edge):
     a, b = [(2.0*float(i)/edge), (2.0*float(j)/edge)]
@@ -160,54 +157,66 @@ class ConvertDetails(CreateCubeIMG):
     elif face==5: (x,y,z) = (5.0-b, a-5.0, -1.0)    # bottom
     return (x,y,z)
 
-  def convertBack(self):
+  def convertBack(self, pv):
     inSize, outSize = [(self.imgIn.size), (self.imgOut.size)]
     inPix, outPix = [(self.imgIn.load()), (self.imgOut.load())]
     edge = inSize[0]/4   # the length of each edge in pixels
-    current_percent = 1
-    for i in range(outSize[0]):
-      face = int(i/edge) # 0 - back, 1 - left 2 - front, 3 - right
-      if face==2: rng = range(0,int(edge*3))
-      else: rng = range(int(edge), int(edge) * 2)
-      current_percent = self.CurrentProgress(current_percent)
-      for j in rng:
-        if j<edge: face2 = 4      # top
-        elif j>=2*edge: face2 = 5 # bottom
-        else: face2 = face
-        (x,y,z) = ConvertDetails.outImgToXYZ(i,j,face2,edge)
-        theta, r = [(atan2(y,x)), (hypot(x,y))] # range -pi to pi
-        phi = atan2(z,r)                        # range -pi/2 to pi/2
-        # source img coords
-        uf = ( 2*edge*(theta + pi)/pi )
-        vf = ( 2.14*edge * (pi/1.869 - phi)/pi)
-        # Use bilinear interpolation between the four surrounding pixels
-        ui, vi = [(floor(uf)),(floor(vf))]  # coord of pixel to bottom left
-        u2, v2 = [(ui+1),(vi+1)]            # coords of pixel to top right     
-        mu, nu = [(uf-ui), (vf-vi)]         # fraction of way across pixel
-        A = inPix[ui % inSize[0],int(clip(vi,0,inSize[1]-1))]
-        B = inPix[u2 % inSize[0],int(clip(vi,0,inSize[1]-1))]
-        C = inPix[ui % inSize[0],int(clip(v2,0,inSize[1]-1))]
-        D = inPix[u2 % inSize[0],int(clip(v2,0,inSize[1]-1))]
-        # interpolate
-        (r,g,b) = (
-          A[0]*(1-mu)*(1-nu) + B[0]*(mu)*(1-nu) + C[0]*(1-mu)*nu+D[0]*mu*nu,
-          A[1]*(1-mu)*(1-nu) + B[1]*(mu)*(1-nu) + C[1]*(1-mu)*nu+D[1]*mu*nu,
-          A[2]*(1-mu)*(1-nu) + B[2]*(mu)*(1-nu) + C[2]*(1-mu)*nu+D[2]*mu*nu )
-        outPix[i,j] = (int(round(r)),int(round(g)),int(round(b)))  
-    return current_percent
-
-  def CurrentProgress(self, current_percent):
-    percent_interval = self.pv
-    pross_interval = current_percent+percent_interval
+  
+    def convertprocess():
+      current_percent = 1
+      for i in range(outSize[0]):
+        face = int(i/edge) # 0 - back, 1 - left 2 - front, 3 - right
+        if face==2: rng = range(0,int(edge*3))
+        else: rng = range(int(edge), int(edge) * 2)
+        current_percent = self.CurrentProgress(pv ,current_percent)
+        for j in rng:
+          if j<edge: face2 = 4      # top
+          elif j>=2*edge: face2 = 5 # bottom
+          else: face2 = face
+          (x,y,z) = ConvertDetails.outImgToXYZ(i,j,face2,edge)
+          theta, r = [(atan2(y,x)), (hypot(x,y))] # range -pi to pi
+          phi = atan2(z,r)                        # range -pi/2 to pi/2
+          # source img coords
+          uf = ( 2*edge*(theta + pi)/pi )
+          vf = ( 2.14*edge * (pi/1.869 - phi)/pi)
+          # Use bilinear interpolation between the four surrounding pixels
+          ui, vi = [(floor(uf)),(floor(vf))]  # coord of pixel to bottom left
+          u2, v2 = [(ui+1),(vi+1)]            # coords of pixel to top right     
+          mu, nu = [(uf-ui), (vf-vi)]         # fraction of way across pixel
+          A = inPix[ui % inSize[0],int(clip(vi,0,inSize[1]-1))]
+          B = inPix[u2 % inSize[0],int(clip(vi,0,inSize[1]-1))]
+          C = inPix[ui % inSize[0],int(clip(v2,0,inSize[1]-1))]
+          D = inPix[u2 % inSize[0],int(clip(v2,0,inSize[1]-1))]
+          # interpolate
+          (r,g,b) = (
+            A[0]*(1-mu)*(1-nu) + B[0]*(mu)*(1-nu) + C[0]*(1-mu)*nu+D[0]*mu*nu,
+            A[1]*(1-mu)*(1-nu) + B[1]*(mu)*(1-nu) + C[1]*(1-mu)*nu+D[1]*mu*nu,
+            A[2]*(1-mu)*(1-nu) + B[2]*(mu)*(1-nu) + C[2]*(1-mu)*nu+D[2]*mu*nu )
+          outPix[i,j] = (int(round(r)),int(round(g)),int(round(b))) 
+      return current_percent
+      process=Thread(target=convertprocess, args=(pv, current_percent))
+      process.daemon = True
+      process.start()
+      
+  def CurrentProgress(self, pv, current_percent):
+    pross_interval = current_percent+pv
     current_percent = pross_interval
     self.percentage.set(str(int(current_percent))+"%")
     self.create_process['value']=current_percent
     self.progresswindow.update_idletasks()
     return current_percent
 
+  def OutputValues(self, inSize):
+    # Set the progress_bar parameters based on input image size
+    if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position, blend_width = [0.010, 6, 55]
+    elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position, blend_width = [0.0225, 4, 50]
+    elif inSize[0] >= 1280 or inSize[1] >= 1080 : pv, correct_position = [0.045, 3, 46]
+    else: pv, correct_position, blend_width = [0.071, 2, 42]
+    return [pv, correct_position, blend_width]
+
   def getimageError(self):
     # Handle image opening errors
     self.progresswindow.destroy()
-    errormessage = "Image file is not opened or found"
-    messagebox.showerror( title="Error_2", message=errormessage)
+    errormessage = "Please open an image file!!"
+    messagebox.showinfo( title="No Image Found!!", message=errormessage)
     return self

@@ -7,7 +7,7 @@
 # Errors & Fixes Sources Strings!!
 Wine_Error="Error: Wine is not Installed!!"
 Python_Error="Error: Python is not Installed in Wine!!"
-Wine_Fix="You Can Refer To This Ducumentation For Assistance:"
+Wine_Fix="You Can Refer To This Documentation For Assistance:"
 Wine_Fix_Web="https://www.winehq.org/pipermail/wine-devel/2002-January/003468.html"
 Pip_Check="Checking Dependencies [It will install them with PIP if not found]"
 Pip_Error="Please Connect To The Internet To Install The Dependencies"
@@ -43,7 +43,7 @@ function check_py_depend {
   done
 }
 
-# Runnning The Program In Wine & Handles Errors!!
+# Running The Program In Wine & Handles Errors!!
 function program { 
   if wine python $(pwd)/window.py; then
     clear ; echo "Program Exited!!"
@@ -72,7 +72,7 @@ done
 # Options to Choose When running the Program
 case ${1,,} in
 	--ignore-depend)
-                program "Program Is Running!!"
+                program "Program Is Running!!" & progress
         ;;
 	--help)
 		clear
