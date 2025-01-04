@@ -19,11 +19,11 @@ The program was only compiled in windows 10 and may not work in some systems, ju
 In order for this to work you need `pyhon`, `pillow`, `numpy` and if your in a linux distro you might need to install tkinter along with the dependencies.
 
 
-````cmd
+```bat
 git clone https://github.com/aKqir24/MC-Sky-Builder.git
 cd MC-Sky-Builder
 python window.py
-````
+```
 
 ## Usage
 1. First Open an image by pressing the open button
