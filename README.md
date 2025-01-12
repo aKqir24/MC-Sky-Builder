@@ -15,6 +15,7 @@
 
 ## Setup
 The program was only compiled in windows 10 and may not work in some systems, just simply download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and double click the `MC_Sky_Builder.exe` to start the program.
+
 ## Compiling
 In order for this to work you need `pyhon`, `pillow`, `numpy` and if your in a linux distro you might need to install tkinter along with the dependencies.
 
