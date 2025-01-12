@@ -23,7 +23,7 @@ In order for this to work you need `pyhon`, `pillow`, `numpy` and if your in a l
 ```bat
 git clone https://github.com/aKqir24/MC-Sky-Builder.git
 cd MC-Sky-Builder
-python window.py
+compile.bat
 ```
 
 ## Usage
