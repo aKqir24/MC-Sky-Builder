@@ -1,8 +1,8 @@
 import about
-from all_val import *
+from config import *
 from threading import Thread
 from tkinter import Toplevel, Button, Label, Scale, Checkbutton, Frame, simpledialog, BooleanVar
-from worker import ToDoDuringStartup as resetto, SettingsMultiOptions, ConfigManagement, StringVar, filedialog, winreg, rm, path, load, _tkinter
+from worker import ToDoDuringStartup as resetto, ConfigManagement, StringVar, filedialog, rm, path, load, _tkinter
 
 class SettingsWindow:  
   def __init__ (self, settingsbutton):
@@ -16,22 +16,20 @@ class SettingsWindow:
     settingswindow.geometry('393x181')
     settingswindow.config(background=db)
     settingswindow.resizable(False, False)
-    settingswindow.iconbitmap('resource\\title\\manufacturing.ico')
+    settingswindow.iconphoto(True, PhotoImage(file=f'{title_icon_path}manufacturing.png'))
     self.settingsbutton.config(command=settingswindow.focus_set)
 
     def scalelabel():
       # Resolution using, scale of the output
       imgresolution = Scale( settingswindow, to=30, from_=0, length=134, borderwidth=0, showvalue=0, bg=b2, fg=f,
-                             width= 10, orient='horizontal', activebackground=ab,sliderlength=20, sliderrelief= rel, 
+                             width=10, orient='horizontal', activebackground=ab,sliderlength=20, sliderrelief= rel, 
                              troughcolor=b,resolution=10, highlightbackground=db, highlightcolor=db)
 
-      with open(config_dir,'r') as readconfig:
-        readusingjson = load(readconfig)
-        the_chosen_res = readusingjson['Image_Size']
-        if the_chosen_res == 256: imgresolution.set(0)
-        elif the_chosen_res == 512: imgresolution.set(10)
-        elif the_chosen_res == 1024: imgresolution.set(20)
-        elif the_chosen_res == 2048: imgresolution.set(30)
+      match configs['Image_Size']:
+        case 256: imgresolution.set(0)
+        case 512: imgresolution.set(10)
+        case 1024: imgresolution.set(20)
+        case 2048: imgresolution.set(30)
 
       factory_res = Frame(settingswindow, height=15, width=150, bg=db, pady= 1)
       res_256 = Label(factory_res, text="256", bg=db, fg=f, pady= 1, bd=0)
@@ -60,14 +58,12 @@ class SettingsWindow:
         packing_mcpack_ch.place(x=1)
         packing_zip_ch.place(x=1, y=22)
   
-        with open(config_dir,'r') as readconfig:
-          readusingjson =  load(readconfig)
-          the_zippacker = readusingjson['Convert_To_Zip']
-          the_mcpacker = readusingjson['Convert_To_Mcpack']
-          if the_zippacker == False: packing_zip_ch.deselect()
-          elif the_zippacker == True: packing_zip_ch.select()
-          if the_mcpacker == False: packing_mcpack_ch.deselect()
-          elif the_mcpacker == True: packing_mcpack_ch.select()
+        the_zippacker = configs['Convert_To_Zip']
+        the_mcpacker = configs['Convert_To_Mcpack']
+        if the_zippacker == False: packing_zip_ch.deselect()
+        else: packing_zip_ch.select()
+        if the_mcpacker == False: packing_mcpack_ch.deselect()
+        else: packing_mcpack_ch.select()
 
         def optionlabels():
           output_path_bg = Frame(settingswindow, bg=b, height=26, width=305, bd=0.5 )
@@ -79,15 +75,13 @@ class SettingsWindow:
           output_path_bg.place(x=77, y= 25)
           outputfolderlabel.place(x=77, y= 25)
       
-          with open(config_dir, 'r') as readconfig:
-            readusingjson = load(readconfig)
-            the_outputfolder_path = readusingjson['Outputfolder_Path']
-            if the_outputfolder_path:
-              for index in range(0, len(the_outputfolder_path), 1000):
-                outputfolderlabel.config(text=the_outputfolder_path[index:index+49]+"...")
+          the_outputfolder_path = configs['Output_Folder']
+          if the_outputfolder_path:
+            for index in range(0, len(the_outputfolder_path), 1000):
+               outputfolderlabel.config(text=the_outputfolder_path[index:index+49]+"...")
 
-          user_options = SettingsMultiOptions(imgresolution, packing_zip_val, packing_mcpack_val)
-          settingbuttons = SettingsOptionsButtons(settingswindow, outputfolderlabel, user_options, imgresolution, packing_zip_ch, packing_mcpack_ch)
+          settingbuttons = SettingsOptionsButtons( settingswindow, outputfolderlabel, 
+                                                    imgresolution, packing_zip_val, packing_mcpack_val)
 
           def optionbuttons():
             Button(settingswindow, command=settingbuttons.ask_output_folder, text="CHANGE", relief=rel, 
@@ -107,7 +101,7 @@ class SettingsWindow:
             def afterclosing():
               try: 
                 settingswindow.wait_window()
-                self.settingsbutton.config(command=SettingsWindow(self.settingsbutton).loadsettings)
+                self.settingsbutton.config(command=self.loadsettings)
               except _tkinter.TclError: pass
 
             return afterclosing()
@@ -117,13 +111,13 @@ class SettingsWindow:
     return scalelabel()
    
 class SettingsOptionsButtons:
-    def __init__ (self, settingswindow, outfollbl, usropts, imgres, packzipch, packmcpackch):
+    def __init__ (self, settingswindow, outfollbl, imgres, packzipch, packmcpackch):
       self.imgresolution = imgres
-      self.user_options = usropts
       self.packzipch = packzipch
       self.packmcpackch = packmcpackch
       self.outputfolderlabel = outfollbl
       self.settingswindow = settingswindow
+      self.settingsconfigs = ConfigManagement( imgres, packzipch, packmcpackch)
       
     closesettings = lambda self:self.settingswindow.destroy()
     aboutprogram = lambda self:about.aboutWin(self.settingswindow)
@@ -131,7 +125,7 @@ class SettingsOptionsButtons:
     def ask_output_folder(self):
       userdesktop = default_output_path()
       the_outputfolder_path = filedialog.askdirectory( initialdir=userdesktop, title="Select Output Folder" )
-      ConfigManagement().OutPathConfigValue(the_outputfolder_path)
+      self.settingsconfigs.userpath(the_outputfolder_path)
       self.settingswindow.focus_set()
       for index in range(0, len(the_outputfolder_path), 1000):
         self.outputfolderlabel.config(text=the_outputfolder_path[index:index+45]+"...")
@@ -140,10 +134,10 @@ class SettingsOptionsButtons:
     def customoutres(self):
         chosen_res = simpledialog.askinteger( title=" ", prompt="Enter Custom Resolution?", minvalue=256 )
         if chosen_res == None: chosen_res = 256
-        ConfigManagement().CustomImgResConfigValue(chosen_res)
+        self.settingsconfigs.outputres(chosen_res)
         
     def resetsettings(self):
-        rm(config_dir)
+        rm(config_file)
         resetto().setdefaults()
         self.imgresolution.set(0)
         self.packzipch.deselect()
@@ -159,9 +153,6 @@ class SettingsOptionsButtons:
         sleep(2)
         setsvlb.destroy()
 
-      Thread(target=ConfigManagement().writesettingsconfig).start()
-      self.user_options.checkmcpackconvert()
-      self.user_options.checkzipconvert()
+      Thread(target=self.settingsconfigs.writesettingsconfig).start()
       Thread(target=savelabel).start()
       self.settingswindow.focus_set()
-      self.user_options.outputres()

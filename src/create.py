@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 import sys
-from all_val import *
+from config import *
 from math import pi,sin,cos,tan,atan2,hypot,floor
 from numpy import clip, hstack, array, concatenate
 from worker import PackingPack, _tkinter, messagebox
@@ -85,6 +85,7 @@ class CreateCubeIMG:
     return javasky
       
   def getcreatesky(self):
+    export_config = readconfig()
     def cropmergedimage(old_names, save_merged):
     # Crop the blended merged image into three parts & save them
       merged_image = Image.open(save_merged)
@@ -98,7 +99,7 @@ class CreateCubeIMG:
         indexed_names = tempdir+old_names[name_index[i]]
         cropped_img = merged_image.crop(croped_coords)
         rm(indexed_names)
-        if i == 2 or i == 0 and readconfig()[3] == True: 
+        if i == 2 or i == 0 and export_config[3] == True: 
           cropped_img.rotate(180).save(indexed_names)
         else: cropped_img.save(indexed_names)
       rm(save_merged)
@@ -119,7 +120,7 @@ class CreateCubeIMG:
 
       width, height = imgOut.size 
       save_merged = tempdir+'combined.png'
-      img_res, out_path, cube_size = [(readconfig()[0]), (readconfig()[1]), (width/4)]
+      img_res, out_path, cube_size = [(export_config[0]), (export_config[1]), (width/4)]
       for row in range(3):
         for col in range(4):
           createcube.CurrentProgress(pv, progress_value)
@@ -127,7 +128,7 @@ class CreateCubeIMG:
             sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
             imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
       
-      #? Update the progressbar by the remaining task!!
+      #? Update the progressbar by the remaining task
       get_remaining_progress = 100-progress_value
       divide_remaining_progress = get_remaining_progress/3
       for remaining_process in range(1,5):
@@ -199,6 +200,7 @@ class ConvertDetails(CreateCubeIMG):
       process.start()
       
   def CurrentProgress(self, pv, current_percent):
+    print(current_percent+ pv)
     pross_interval = current_percent+pv
     current_percent = pross_interval
     self.percentage.set(str(int(current_percent))+"%")

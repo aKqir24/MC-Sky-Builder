@@ -7,31 +7,30 @@ __description__: "Converts an Image into a sky-overlay pack for minecraft..."
 class ButtonsCommands:
   #? Functions to be called by the button
   def ask_image_folder(mainwindow, Imageprev, Imageinput): 
-    with open(config_dir, 'r') as readconfig:
-      tojson = load(readconfig)['Outputfolder_Path']
-      the_imagefolder_path = filedialog.askopenfilename( initialdir = tojson, title = "Select Image File",
+    current_dir = configs['Output_Folder']
+    the_imagefolder_path = filedialog.askopenfilename( initialdir = current_dir, title = "Select Image File",
                              filetypes = (("Image Files","*.jpg *.png *.jpeg"),("Image Files","*.jpg *.png *.jpeg")))
-      if the_imagefolder_path:
-        image_details.clear()
-        # TODO: Make an If statement when a user_pack name is present
-        # TODO: And if not then use the default image name as pack name
-        GetImageDetails(the_imagefolder_path).getimagename()
-        for index in range(0, len(the_imagefolder_path), 1000):
-          Imageinput.config(text="Image Folder : "+the_imagefolder_path[index:index+45]+"...")
-          with Image.open(the_imagefolder_path).resize((368,218)) as intputimg:
-            chosen_img = ImageTk.PhotoImage(intputimg)
-            Imageprev.config(image=chosen_img, height= 210, width= 350)
-          mainwindow.mainloop()
+    if the_imagefolder_path:
+      image_details.clear()
+      # TODO: Make an If statement when a user_pack name is present
+      # TODO: And if not then use the default image name as pack name
+      GetImageDetails(the_imagefolder_path).getimagename()
+      for index in range(0, len(the_imagefolder_path), 1000):
+        Imageinput.config(text="Image Folder : "+the_imagefolder_path[index:index+45]+"...")
+        with Image.open(the_imagefolder_path).resize((368,218)) as intputimg:
+          chosen_img = ImageTk.PhotoImage(intputimg)
+          Imageprev.config(image=chosen_img, height= 210, width= 350)
+        mainwindow.mainloop()
 
   def launch_create_sky(createSKY):
     from tkinter.ttk import Progressbar
+    # TODO: Make a dialog that ask for your own pack name...
+    pack_name = lambda: image_details.append(user_pack_name)
+
     def on_closing():
       running = False  #? Stop the loop
       PackingPack().CleanUp()
-      progresswindow.destroy() #? Close the top-level window
-
-    # TODO: Make a dialog that ask for your own pack name!!
-    def pack_name(): image_details.append(user_pack_name)
+      progresswindow.destroy() #? Close the top-level window 
 
     try:
       percentage = StringVar()
@@ -39,7 +38,7 @@ class ButtonsCommands:
       progresswindow.geometry('380x90')
       progresswindow.title("Building Sky")
       progresswindow.resizable(False, False)
-      progresswindow.iconbitmap('resource\\title\\conversion.ico')
+      progresswindow.iconphoto(True, PhotoImage(file=f'{title_icon_path}conversion.png'))
       progresswindow.config(background='#283149')
       createSKY.config(command=progresswindow.focus_set)
       create_process = Progressbar(progresswindow, length=338)
@@ -56,11 +55,9 @@ class ButtonsCommands:
 
   def goto_output_folder():
     from subprocess import Popen as showfolder
-    with open(config_dir, 'r') as readconfig:
-      readusingjson = load(readconfig)
-      outpath = readusingjson['Outputfolder_Path']
-      coroutoath = outpath.replace("/", "\\")
-      showfolder(['explorer', coroutoath])
+    outpath = configs['Output_Folder']
+    coroutoath = outpath.replace("/", "\\")
+    showfolder(['explorer', coroutoath])
 
 class MainWindow(): 
   def WindowInterface():
@@ -69,7 +66,7 @@ class MainWindow():
     mainwindow.geometry('376x268')
     mainwindow.title("MC Sky Builder")
     mainwindow.config(background="#283149")
-    mainwindow.iconbitmap('resource\\icon.ico')
+    mainwindow.iconphoto(True, PhotoImage(file=f'{title_icon_path}app.png'))
     mainwindow.resizable(False, False)
 
     # Labels/Frames of the path & location
@@ -98,10 +95,10 @@ class MainWindow():
     return FrontButtons(), mainwindow.mainloop() 
 
 if __name__ == '__main__':
-  #* At First I will GOD is Good All The Time :) *#
-  from all_val import *
-  from tkinter import Tk, Button, _tkinter
-  from create import CreateCubeIMG, PackingPack
-  from worker import GetImageDetails, filedialog, Toplevel, Label, StringVar
-  from settings import SettingsWindow, Frame, BooleanVar, Thread, resetto
-  resetto().makethetempdir().setdefaults(), MainWindow.WindowInterface()
+#* At First I will GOD is Good All The Time :) *#
+    from config import *
+    from tkinter import Tk, Button, _tkinter
+    from create import CreateCubeIMG, PackingPack
+    from worker import GetImageDetails, filedialog, Toplevel, Label, StringVar
+    from settings import SettingsWindow, Frame, BooleanVar, Thread, resetto
+    resetto().makethetempdir().setdefaults(), MainWindow.WindowInterface()
