@@ -2,7 +2,7 @@ import about
 from all_val import *
 from threading import Thread
 from tkinter import Toplevel, Button, Label, Scale, Checkbutton, Frame, simpledialog, BooleanVar
-from worker import ToDoDuringStartup as resetto, SettingsMultiOptions, ConfigManagement, StringVar, filedialog, winreg, rm, path, load, _tkinter
+from worker import ToDoDuringStartup as resetto, SettingsMultiOptions, ConfigManagement, StringVar, filedialog, rm, path, load, _tkinter
 
 class SettingsWindow:  
   def __init__ (self, settingsbutton):
