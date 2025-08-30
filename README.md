@@ -1,5 +1,9 @@
-<div align="center"><img height="200" alt="app" src="https://github.com/user-attachments/assets/aa5a7b84-d61c-4de9-b5a6-19a6d605d045"/>
+<div align="center">
+<img height="200" alt="app" src="https://github.com/user-attachments/assets/aa5a7b84-d61c-4de9-b5a6-19a6d605d045"/>
 <h1>MC-Sky-Builder</h1>
+
+![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/aKqir24/MC-Sky-Builder/latest/total?style=for-the-badge&color=blue)
+
 <d>A Program I Made That, Turns Your Chosen Image Into A Sky Overlay Pack Or Cubemap, And Exports It For Both For Java & Bedrock(Windows 10 Edition) Platforms.</d>
 </div>
 
@@ -10,7 +14,7 @@
     <li> Seperated Java, Bedrock, and Both Sky Output </li>
 </ol>
 
-![screen_shot](https://github.com/user-attachments/assets/76a35f6f-4f3d-43c9-b303-d3cb28388ac6)
+<div align="center"><img height="1480" src="https://github.com/user-attachments/assets/76a35f6f-4f3d-43c9-b303-d3cb28388ac6"/></div>
 
 ## Setup
 The program was only compiled in windows 10 and may not work in some systems, just simply download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and double click the `MC_Sky_Builder.exe` to start the program.
@@ -36,5 +40,6 @@ python window.py
 <h2>WARNING⚠!!</h2>
 <d>Some images might not load or result into a perfect sky overlay, due to the limitations of my ability to code a better one and of the modules.</d>
 </div>
+
 
 

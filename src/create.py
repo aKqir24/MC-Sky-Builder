@@ -1,224 +1,157 @@
-# This Code Was Made By People From Stackoverflow 
-# I Am To Lazy To Make These Kinds Of Hard Code
-# Since I'm Just A Beginer I Don't Know Many Maths
+"""
 
-from __future__ import print_function
-import sys
+    This Code Was Made By People From Stackoverflow 
+    I Am To Lazy To Make These Kinds Of Hard Code
+    Since I'm Just A Beginer I Don't Know Many Maths
+
+"""
+
+import _tkinter
 from config import *
-from math import pi,sin,cos,tan,atan2,hypot,floor
-from numpy import clip, hstack, array, concatenate
-from worker import PackingPack, _tkinter, messagebox
-from threading import Thread
-     
+from PIL import Image
+from numpy import concatenate, array
+from worker import PackingPack, messagebox
+
 class CreateCubeIMG:
-  def __init__(self, progresswindow, create_process, percentage):
-    self.percentage = percentage
-    self.progresswindow = progresswindow  
-    self.create_process = create_process
-    
-  noimagehandler = lambda self: ConvertDetails.getimageError(self)
+    def __init__(self, progress_window, create_process, percentage):
+        self.percentage = percentage
+        self.progress_window = progress_window
+        self.create_process = create_process
 
-  def loadingtitle(self):
-    #? Update the title of the progress window during loading
-    try:
-      sleep(1)
-      while int(str(self.percentage.get().replace("%", ""))) < 100:
-        for tlno in range(0, 7):
-          if int(str(self.percentage.get().replace("%", ""))) >= 100: 
-            self.progresswindow.destroy()
-            messagebox.showinfo(title="Finished!!", message="Sky `Building` was a success :D")
-            break
-          else:
+    no_image_handler = lambda self: ConvertDetails.getimageError(self)
+
+    def loading_title(self):
+        """Updates the progress window title while building the sky."""
+        try:
             sleep(1)
-            titlemsg = ("Building Sky")
-            titledot = [ " ",".","."*2,"."*3, "."*3, "."*2, "." ]
-            self.progresswindow.title(titlemsg+titledot[0+tlno])
-    except _tkinter.TclError: pass
-    except RuntimeError: pass
-    except ValueError: pass
-  
-  def mergeskyedges(self, correct_position, blend_width):
-    # Merge sky edge images into a single image to blend the pixels
-    top = Image.open(tempdir+'Top'+ext).rotate(-180)
-    front = Image.open(tempdir+'Front'+ext)
-    bottom = Image.open(tempdir+'Bottom'+ext).rotate(180)
-    mrg = Image.new("RGBA", (top.size[0], top.size[0]*3))
-    mrg.paste(top)
-    mrg.paste(front, (0, top.size[0]))
-    mrg.paste(bottom, (0, front.size[0]*2))
-    left = mrg.crop((0, 0, front.width // 2, top.height*3))
-    right = mrg.crop((top.width // 2, 0, top.width, top.height*3))
-    combined = Image.fromarray(concatenate((array(left), array(right)),axis=1))
-    for alpi in range(blend_width): 
-      alpha = alpi / blend_width
-      for bl in range(top.height*3):
-        #if alpi < curve_radius: alpha = (alpi + 1) / curve_radius
-        x1 = max(0, min(left.width - 1, left.width - blend_width + alpi))
-        x2 = max(0, min(right.width - 1, blend_width - alpi))
-        pixel1, pixel2 = [(left.getpixel((x1, bl))), (right.getpixel((x2, bl)))]
-        blended_pixel = tuple(int((1 - alpha) * a + alpha * b) for a, b in zip(pixel1, pixel2))        
-        combined.putpixel((top.width // 2 - blend_width + alpi + correct_position, bl), blended_pixel)
-    return combined
+            while int(self.percentage.get().replace("%", "")) < 100:
+                for i, dots in enumerate([" ", ".", "..", "...", "...", "..", "."]):
+                    if int(self.percentage.get().replace("%", "")) >= 100:
+                        self.progress_window.destroy()
+                        messagebox.showinfo("Finished!", "Sky `Building` was a success :D")
+                        return
+                    self.progress_window.title(f"Building Sky{dots}")
+                    sleep(1)
+        except (_tkinter.TclError, RuntimeError, ValueError):
+            pass
 
-  def mergejavasky(self):
-    filenames = PackingPack.old_names
-    temp_images = [
-      Image.open(tempdir + filenames[5]),  # bottom
-      Image.open(tempdir + filenames[4]),  # top
-      Image.open(tempdir + filenames[0]),  # back
-      Image.open(tempdir + filenames[1]),  # left
-      Image.open(tempdir + filenames[2]),  # front
-      Image.open(tempdir + filenames[3]) ] # right
+    def merge_sky_edges(self, correct_position, blend_width):
+        """Blends the edges of Top, Front, and Bottom images into a smooth seam."""
+        top = Image.open(tempdir + 'Top' + ext).rotate(-180)
+        front = Image.open(tempdir + 'Front' + ext)
+        bottom = Image.open(tempdir + 'Bottom' + ext).rotate(180)
 
-    # Create a new image with appropriate size
-    width, height = temp_images[0].size
-    javasky = Image.new("RGBA", (width * 3, height * 2))
-    # Paste images into the new image
-    for img_i, temp_image in enumerate(temp_images):
-      
-      # Top row (bottom, top, back)
-      if temp_image == 1: temp_image = temp_image.rotate(-180)
-      if img_i < 3: x_offset, y_offset = [(width * img_i), 0]
-      # Bottom row (left, front, right)
-      else: x_offset, y_offset = [(width * (img_i - 3)), height] 
-      javasky.paste(temp_image, (int(x_offset), int(y_offset)))
-    return javasky
-      
-  def getcreatesky(self):
-    export_config = readconfig()
-    def cropmergedimage(old_names, save_merged):
-    # Crop the blended merged image into three parts & save them
-      merged_image = Image.open(save_merged)
-      coords = [
-        (0, 0, img_res, img_res),             
-        (0, img_res, img_res, img_res * 2),    
-        (0, img_res * 2, img_res, img_res * 3) ]
-      
-      for i ,croped_coords in enumerate(coords):
-        name_index = [4, 2, 5]
-        indexed_names = tempdir+old_names[name_index[i]]
-        cropped_img = merged_image.crop(croped_coords)
-        rm(indexed_names)
-        if i == 2 or i == 0 and export_config[3] == True: 
-          cropped_img.rotate(180).save(indexed_names)
-        else: cropped_img.save(indexed_names)
-      rm(save_merged)
+        combined_height = top.height * 3
+        mrg = Image.new("RGBA", (top.width, combined_height))
+        mrg.paste(top)
+        mrg.paste(front, (0, top.height))
+        mrg.paste(bottom, (0, top.height * 2))
 
-    try:
-      self.progresswindow.focus_set()
-      imgIn = Image.open(image_details[0]) 
-      inSize = imgIn.size 
-      imgOut = Image.new("RGB",(inSize[0],int(inSize[0]*3/4)),"black")
-      createcube = ConvertDetails( imgIn, imgOut, self.progresswindow, self.create_process, self.percentage)
-      pv, correct_position, blend_width = createcube.OutputValues(inSize)
-      progress_value, packsky = [(createcube.convertBack(pv)),(PackingPack)]
-      
-      name_map = [ \
-           ["", "", "Top", ""],
-           ["Front", "Right", "Back", "Left"],
-           ["", "", "Bottom", ""]]
+        left = mrg.crop((0, 0, top.width // 2, combined_height))
+        right = mrg.crop((top.width // 2, 0, top.width, combined_height))
 
-      width, height = imgOut.size 
-      save_merged = tempdir+'combined.png'
-      img_res, out_path, cube_size = [(export_config[0]), (export_config[1]), (width/4)]
-      for row in range(3):
-        for col in range(4):
-          createcube.CurrentProgress(pv, progress_value)
-          if name_map[row][col] != "":
-            sx, sy, fn = [(cube_size * col), (cube_size * row), (name_map[row][col] + '.png')]
-            imgOut.crop((sx, sy, sx + cube_size, sy + cube_size)).resize((int(img_res), int(img_res))).save(tempdir+fn)
-      
-      #? Update the progressbar by the remaining task
-      get_remaining_progress = 100-progress_value
-      divide_remaining_progress = get_remaining_progress/3
-      for remaining_process in range(1,5):
-        if remaining_process == 4: sleep(1)
-        else:
-          createcube.CurrentProgress(pv, progress_value+divide_remaining_progress*remaining_process)
-          if remaining_process == 1: self.mergeskyedges(correct_position, blend_width).save(save_merged)
-          if remaining_process == 2: cropmergedimage(packsky.old_names, save_merged)
-          if remaining_process == 3: packsky().ZipMcpackOrBoth(self.mergejavasky()).CleanUp()
-    except IndexError: self.noimagehandler()
-    except _tkinter.TclError: pass
+        combined = Image.fromarray(concatenate((array(left), array(right)), axis=1))
 
-class ConvertDetails(CreateCubeIMG):
-  def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage):
-    super().__init__(progresswindow, create_process, percentage)
-    self.imgIn = imgIn
-    self.imgOut = imgOut
+        for i in range(blend_width):
+            alpha = i / blend_width
+            for y in range(combined_height):
+                x1 = clip(left.width - blend_width + i, 0, left.width - 1)
+                x2 = clip(blend_width - i, 0, right.width - 1)
 
-  def outImgToXYZ(i,j,face,edge):
-    a, b = [(2.0*float(i)/edge), (2.0*float(j)/edge)]
-    # Calculate coordinates based on the face of the cube
-    if face==0: (x,y,z) = (-1.0, 1.0-a, 3.0 - b)    # back
-    elif face==1: (x,y,z) = (a-3.0, -1.0, 3.0 - b)  # left
-    elif face==2: (x,y,z) = (1.0, a - 5.0, 3.0 - b) # front
-    elif face==3: (x,y,z) = (7.0-a, 1.0, 3.0 - b)   # right
-    elif face==4: (x,y,z) = (b-1.0, a -5.0, 1.0)    # top
-    elif face==5: (x,y,z) = (5.0-b, a-5.0, -1.0)    # bottom
-    return (x,y,z)
+                p1 = left.getpixel((x1, y))
+                p2 = right.getpixel((x2, y))
 
-  def convertBack(self, pv):
-    inSize, outSize = [(self.imgIn.size), (self.imgOut.size)]
-    inPix, outPix = [(self.imgIn.load()), (self.imgOut.load())]
-    edge = inSize[0]/4   # the length of each edge in pixels
-  
-    def convertprocess():
-      current_percent = 1
-      for i in range(outSize[0]):
-        face = int(i/edge) # 0 - back, 1 - left 2 - front, 3 - right
-        if face==2: rng = range(0,int(edge*3))
-        else: rng = range(int(edge), int(edge) * 2)
-        current_percent = self.CurrentProgress(pv ,current_percent)
-        for j in rng:
-          if j<edge: face2 = 4      # top
-          elif j>=2*edge: face2 = 5 # bottom
-          else: face2 = face
-          (x,y,z) = ConvertDetails.outImgToXYZ(i,j,face2,edge)
-          theta, r = [(atan2(y,x)), (hypot(x,y))] # range -pi to pi
-          phi = atan2(z,r)                        # range -pi/2 to pi/2
-          # source img coords
-          uf = ( 2*edge*(theta + pi)/pi )
-          vf = ( 2.14*edge * (pi/1.869 - phi)/pi)
-          # Use bilinear interpolation between the four surrounding pixels
-          ui, vi = [(floor(uf)),(floor(vf))]  # coord of pixel to bottom left
-          u2, v2 = [(ui+1),(vi+1)]            # coords of pixel to top right     
-          mu, nu = [(uf-ui), (vf-vi)]         # fraction of way across pixel
-          A = inPix[ui % inSize[0],int(clip(vi,0,inSize[1]-1))]
-          B = inPix[u2 % inSize[0],int(clip(vi,0,inSize[1]-1))]
-          C = inPix[ui % inSize[0],int(clip(v2,0,inSize[1]-1))]
-          D = inPix[u2 % inSize[0],int(clip(v2,0,inSize[1]-1))]
-          # interpolate
-          (r,g,b) = (
-            A[0]*(1-mu)*(1-nu) + B[0]*(mu)*(1-nu) + C[0]*(1-mu)*nu+D[0]*mu*nu,
-            A[1]*(1-mu)*(1-nu) + B[1]*(mu)*(1-nu) + C[1]*(1-mu)*nu+D[1]*mu*nu,
-            A[2]*(1-mu)*(1-nu) + B[2]*(mu)*(1-nu) + C[2]*(1-mu)*nu+D[2]*mu*nu )
-          outPix[i,j] = (int(round(r)),int(round(g)),int(round(b))) 
-      return current_percent
-      process=Thread(target=convertprocess, args=(pv, current_percent))
-      process.daemon = True
-      process.start()
-      
-  def CurrentProgress(self, pv, current_percent):
-    print(current_percent+ pv)
-    pross_interval = current_percent+pv
-    current_percent = pross_interval
-    self.percentage.set(str(int(current_percent))+"%")
-    self.create_process['value']=current_percent
-    self.progresswindow.update_idletasks()
-    return current_percent
+                blended_pixel = tuple(int((1 - alpha) * a + alpha * b) for a, b in zip(p1, p2))
+                px = top.width // 2 - blend_width + i + correct_position
+                combined.putpixel((px, y), blended_pixel)
 
-  def OutputValues(self, inSize):
-    # Set the progress_bar parameters based on input image size
-    if inSize[0] >= 3840 or inSize[1] >= 2160: pv, correct_position, blend_width = [0.010, 6, 55]
-    elif inSize[0] >= 2048 or inSize[1] >= 1080 : pv, correct_position, blend_width = [0.0225, 4, 50]
-    elif inSize[0] >= 1280 or inSize[1] >= 1080 : pv, correct_position = [0.045, 3, 46]
-    else: pv, correct_position, blend_width = [0.071, 2, 42]
-    return [pv, correct_position, blend_width]
+        return combined
 
-  def getimageError(self):
-    # Handle image opening errors
-    self.progresswindow.destroy()
-    errormessage = "Please open an image file!!"
-    messagebox.showinfo( title="No Image Found!!", message=errormessage)
-    return self
+    def merge_java_sky(self):
+        """Creates a Java-style sky layout (3x2 grid)."""
+        filenames = PackingPack.old_names
+        images = [Image.open(tempdir + filenames[i]) for i in [5, 4, 0, 1, 2, 3]]
+
+        width, height = images[0].size
+        canvas = Image.new("RGBA", (width * 3, height * 2))
+
+        for i, img in enumerate(images):
+            x = (i if i < 3 else i - 3) * width
+            y = 0 if i < 3 else height
+            canvas.paste(img, (x, y))
+
+        return canvas
+
+    def get_create_sky(self):
+        """Main method to handle full sky conversion, blending, cropping, and packing."""
+
+        def crop_merged_image(old_names, merged_path):
+            """Crop blended sky into top, front, bottom and save them."""
+            image = Image.open(merged_path)
+            coords = [
+                (0, 0, img_res, img_res),
+                (0, img_res, img_res, img_res * 2),
+                (0, img_res * 2, img_res, img_res * 3)
+            ]
+            name_indices = [4, 2, 5]
+
+            for i, box in enumerate(coords):
+                path = tempdir + old_names[name_indices[i]]
+                rm(path)
+                cropped = image.crop(box)
+                if (i == 0 or i == 2) and export_config[3] is True:
+                    cropped = cropped.rotate(180)
+                cropped.save(path)
+            rm(merged_path)
+
+        try:
+            export_config = readconfig()
+            self.progress_window.focus_set()
+
+            img_in = Image.open(image_details[0])
+            width, height = img_in.size
+            img_out = Image.new("RGB", (width, int(width * 3 / 4)), "black")
+
+            converter = ConvertDetails(img_in, img_out, self.progress_window, self.create_process, self.percentage)
+            pv, correct_pos, blend_width = converter.OutputValues((width, height))
+            progress_value = converter.convertBack(pv)
+            packsky = PackingPack
+
+            name_map = [
+                ["", "", "Top", ""],
+                ["Front", "Right", "Back", "Left"],
+                ["", "", "Bottom", ""]
+            ]
+
+            cube_size = width / 4
+            img_res, out_path = export_config[0], export_config[1]
+            save_merged = tempdir + 'combined.png'
+
+            for row in range(3):
+                for col in range(4):
+                    name = name_map[row][col]
+                    if name:
+                        x = col * cube_size
+                        y = row * cube_size
+                        region = img_out.crop((x, y, x + cube_size, y + cube_size))
+                        region = region.resize((int(img_res), int(img_res)))
+                        region.save(tempdir + name + ".png")
+                        converter.CurrentProgress(pv, progress_value)
+
+            remaining = 100 - progress_value
+            step = remaining / 3
+
+            for phase in range(1, 5):
+                if phase == 4:
+                    sleep(1)
+                else:
+                    converter.CurrentProgress(pv, progress_value + step * phase)
+                    if phase == 1:
+                        self.merge_sky_edges(correct_pos, blend_width).save(save_merged)
+                    elif phase == 2:
+                        crop_merged_image(packsky.old_names, save_merged)
+                    elif phase == 3:
+                        packsky().ZipMcpackOrBoth(self.merge_java_sky()).CleanUp()
+
+        except (IndexError, _tkinter.TclError):
+            self.no_image_handler()

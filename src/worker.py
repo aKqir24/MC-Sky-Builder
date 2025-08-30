@@ -10,165 +10,178 @@
 
 from config import * 
 from shutil import copytree, copy, move, rmtree, make_archive
-from tkinter import filedialog, Toplevel, Label, StringVar, messagebox, _tkinter
+from tkinter import messagebox
+from os import path, mkdir
+from json import dump
+from PIL import Image
+from time import strftime
 
 class GetImageDetails:
-  def __init__(self, imgpath):
-    self.imgpath = imgpath
+    def __init__(self, imgpath):
+        self.imgpath = imgpath
 
-  #? Get the filename of an image 
-  def getimagename(self):
-    imgext = GetImageDetails.getimgext(self)
-    rmpackex = self.imgpath.replace('jpg', 'jpeg').replace(imgext, "")
+    def get_image_name(self):
+        # Get file extension and filename without extension
+        img_ext = self.get_img_ext()
+        # Replace 'jpg' with 'jpeg' to standardize
+        base_path = self.imgpath.replace('jpg', 'jpeg').replace(img_ext, "")
+        # Use os.path.basename to get just the filename
+        filename = path.basename(base_path)
+        image_details.append(filename)
+        return filename
 
-    # Remove The dirname to get the filename
-    default_index, getimgpath = ( 1, rmpackex )
-    imgpathfori = getimgpath+" "
-    while getimgpath[:-default_index].startswith('/') == False:
-      cl = default_index+1
-      default_index = cl
-      rmdirtxt = (imgpathfori[:-default_index])
-      if rmdirtxt.endswith('/') == True:
-        thefilename = imgpathfori.replace(rmdirtxt, "")
-        imagefilename = (thefilename[:-1])
-        image_details.append(imagefilename)
-        break
-  
-  #? Get the file image extension/format
-  def getimgext(self):
-    image_details.append(self.imgpath)
-    imgext = Image.open(self.imgpath).format
-    theimgext = "."+imgext.lower()
-    image_details.append(theimgext)
-    print("Image Path: "+image_details[0])
-    print("Image Format: "+theimgext)
-    return theimgext
+    def get_img_ext(self):
+        # Append image path to details
+        image_details.append(self.imgpath)
+        # Open image and get extension
+        img_format = Image.open(self.imgpath).format
+        ext = "." + img_format.lower()
+        image_details.append(ext)
+        return ext
 
 class ToDoDuringStartup:
-  #? Make a temporary working folder
-  def makethetempdir(self):
-    if not path.exists(tempdir): mkdir(tempdir)
-    if not path.exists(config_folder): mkdir(config_folder)
-    return self
-          
-  #? Set the default output folder path
-  def setdefaults(self):
-    # chosen_res, getchconjavzip, getchconmcpack, userpath
-    if not path.exists(config_file): writeconfig()
-    readconfig()
-    return self
-      
+    def make_temp_dir(self):
+        if not path.exists(tempdir):
+            mkdir(tempdir)
+        if not path.exists(config_folder):
+            mkdir(config_folder)
+        return self
+
+    def set_defaults(self):
+        if not path.exists(config_file):
+            writeconfig()
+        readconfig()
+        return self
+
+# TODO: Move this to another module
 class ConfigManagement:
-  #* Simply send the values of your options in the config
     def __init__(self, output_resolution, pack_zip_val, pack_mcpack_val):
-      self.output_resolution = output_resolution
-      self.pack_zip_val=pack_zip_val
-      self.pack_mcpack_val=pack_mcpack_val
-      self.stored_config = configs
-      self.custom_recent_resolution=None
-      self.scale_recent_resolution=None
+        self.output_resolution = output_resolution
+        self.pack_zip_val = pack_zip_val
+        self.pack_mcpack_val = pack_mcpack_val
+        self.stored_config = configs
+        self.custom_recent_resolution = None
+        self.scale_recent_resolution = None
 
-    userpath = lambda self, folder: self.stored_config.update({"Output_Folder": folder})
+    def userpath(self, folder):
+        self.stored_config.update({"Output_Folder": folder})
 
-    def outputres(self, resolution):
-      scale_resolution=self.output_resolution.get()
-      if resolution > 4 and resolution is not None:
-        self.custom_recent_resolution=resolution
-        chosen_resolution = self.custom_recent_resolution
-      elif supported_resolutions[resolution] in supported_resolutions \
-              and not self.scale_recent_resolution == supported_resolutions[resolution]:
-        chosen_resolution=supported_resolutions[resolution]
-        print(supported_resolutions[resolution])
-        self.custom_recent_resolution=None
-      else:
-          if self.custom_recent_resolution != None:
-            chosen_resolution=self.custom_recent_resolution
-          else:
-            chosen_resolution=supported_resolutions[resolution]
-          print(3)
-
-      self.scale_recent_resolution=supported_resolutions[scale_resolution]
-      self.stored_config.update({"Image_Size": chosen_resolution})
+    def output_res(self, resolution):
+        scale_res = self.output_resolution.get()
+        if resolution > 4 and resolution is not None:
+            chosen_resolution = resolution
+            self.custom_recent_resolution = resolution
+        elif supported_resolutions.get(resolution) and self.scale_recent_resolution != supported_resolutions[resolution]:
+            chosen_resolution = supported_resolutions[resolution]
+            self.custom_recent_resolution = None
+        else:
+            chosen_resolution = self.custom_recent_resolution if self.custom_recent_resolution else supported_resolutions.get(resolution, resolution)
+        self.scale_recent_resolution = supported_resolutions.get(scale_res, scale_res)
+        self.stored_config.update({"Image_Size": chosen_resolution})
 
     def write_settings_config(self):
-        self.outputres(self.output_resolution.get()) 
+        self.output_res(self.output_resolution.get())
         self.stored_config.update({"Convert_To_Zip": self.pack_zip_val.get()})
         self.stored_config.update({"Convert_To_Mcpack": self.pack_mcpack_val.get()})
         writeconfig()
-    
+
 class MkJsonPackDetailsFile:
-  pack_des = "This SkyOverlay Was Made By Using §cAkqir's §f(§bMC §fSky Builder) Software..." 
-  def makethemanifest(self):
-    from uuid import uuid4 as generate_random_uuid 
+    pack_description = "This SkyOverlay Was Made By Using §cAkqir's §f(§bMC §fSky Builder) Software..."
+    pack_name = lamba self: image_details[2] + " (Sky Overlay)"
+    mcpack_file = lamba self: self.pack_name() + ".mcpack"
+    zippack_file = lamba self: self.pack_name() + ".zip"
 
-    #? For Bedrock Write The Manifest File 
-    with open(tempdir+image_details[2]+".mcpack"+"\\"+'manifest.json', 'w') as writejson:
-      manifestfile =  { "format_version": 1, "header": { 
-                        "description": self.pack_des,
-                        "name": image_details[2]+" (Sky Overlay)", "uuid": str(generate_random_uuid()), 
-                        "version": [1, 0, 0], "min_engine_version": [1, 12, 0]}, "modules": [ { 
-                        "description": "", "type": "resources", "uuid": str(generate_random_uuid()),
-                        "version": [1, 0, 0] } ] }
-      dump(manifestfile, writejson, sort_keys=True, skipkeys=1, indent=3)
-    return self
+    def make_manifest(self):
+        from uuid import uuid4
+        manifest = {
+            "format_version": 1,
+            "header": {
+                "description": self.pack_description,`
+                "name": self.pack_name(),
+                "uuid": str(uuid4()),
+                "version": [1, 0, 0],
+                "min_engine_version": [1, 12, 0]
+            },
+            "modules": [{
+                "description": "",
+                "type": "resources",
+                "uuid": str(uuid4()),
+                "version": [1, 0, 0]
+            }]
+        }
+        manifest_path = path.join(tempdir, self.mcpack_file(), 'manifest.json')
+        with open(manifest_path, 'w') as f:
+            dump(manifest, f, sort_keys=True, indent=3)
+        return self
 
-  def makethepackmeta(self):
-    #? For Java Write The Meta File 
-    with open(tempdir+image_details[2]+".zip"+"\\"+'pack.mcmeta', 'w') as writepckmeta:
-      pack_des = MkJsonPackDetailsFile.pack_des.replace("§c", "").replace("§b", "").replace("§f", "")
-      packmeta = { "pack": { "pack_format": 1, "description": self.pack_des } }
-      dump(packmeta, writepckmeta, sort_keys=True, skipkeys=1, indent=3)
-    return self 
+    def make_pack_meta(self):
+        pack_description_clean = self.pack_description.replace("§c", "").replace("§b", "").replace("§f", "")
+        meta = {
+            "pack": {
+                "pack_format": 1,
+                "description": pack_description_clean
+            }
+        }
+        meta_path = path.join(tempdir, self.zippack_file(), 'pack.mcmeta')
+        with open(meta_path, 'w') as f:
+            dump(meta, f, sort_keys=True, indent=3)
+        return self
 
-  # TODO: Enhance the pack_icon maker  
-  def makepackicon (self, image_right, pack_folder, pack_icon_name):
-    copy(tempdir+image_right, tempdir+pack_folder+pack_icon_name)
+    def make_pack_icon(self, image_right, pack_folder, pack_icon_name):
+        src = path.join(tempdir, image_right)
+        dst = path.join(tempdir, pack_folder, pack_icon_name)
+        copy(src, dst)
 
-class PackingPack:
-  old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Top.png", "Bottom.png"]
-  new_names = ["cubemap_0.png", "cubemap_1.png", "cubemap_2.png", "cubemap_3.png", "cubemap_4.png", "cubemap_5.png"]
+class PackingPack(MkJsonPackDetailsFile):
+    def __init__(self):
+        super().__init__()
+        self.old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Top.png", "Bottom.png"]
+        self.new_names = [f"cubemap_{i}.png" for i in range(6)]
 
-  def MoveToOut(self, pack_name):
-    #? Move the output_image in the output directory
-    path_finished = tempdir+pack_name+"\\"
-    output_path = configs['Output_Folder'].replace("/", "\\")+"\\"+pack_name
-    make_archive(output_path, 'zip', path.dirname(path_finished))
-    if pack_name.endswith(".zip") == True: move(output_path+".zip", output_path.replace(".zip", "", 0))
-    else: move(output_path+".zip", output_path.replace(".zip", ""))
-    return self
-  
-  def CleanUp(self):
-    #! Deletes TEMP files when done or cancel
-    print("Cleaning Up '%TEMP%' files")
-    if path.exists(tempdir[:-1]):
-      rmtree(tempdir[:-1])
-      mkdir(tempdir[:-1])
-    return self
+    def move_to_out(self, pack_filename):
+        finished_path = path.join(tempdir, pack_filename)
+        output_path = path.join(configs['Output_Folder'].replace("/", "\\"), pack_filename)
+        make_archive(output_path, 'zip', path.dirname(finished_path))
+        if pack_filename.endswith(".zip"):
+            move(output_path + ".zip", output_path.replace(".zip", ""))
+        else:
+            move(output_path + ".zip", output_path)
+        return self
 
-  def ZipMcpackOrBoth(self, mergejavasky):
-    #? Identifies on what your packing choice in the config
-    if configs['Convert_To_Zip'] == True: 
-      zip_folder = image_details[2]+".zip"
-      path_zip = zip_folder+"\\assets\\minecraft\\mcpatcher\\sky\\world0"
-      MkJsonPackDetailsFile().makethepackmeta().makepackicon(self.old_names[3], zip_folder, "\\pack.png")
-      mergejavasky.save(tempdir+path_zip+'\\'+'cloud1.png')
-      for mv_i in range(1,9):
-        if not mv_i == 5:
-          sky_properties = "sky"+str(mv_i)+".properties"
-          copy("resource\\mcpatcher\\sky\\world0\\"+sky_properties, tempdir+path_zip+"\\"+sky_properties)
-      self.MoveToOut(zip_folder)
+    def clean_up(self):
+        print("Cleaning up TEMP files...")
+        tempdir_path = tempdir[:-1] if tempdir.endswith("\\") else tempdir
+        if path.exists(tempdir_path):
+            rmtree(tempdir_path)
+            mkdir(tempdir_path)
+        return self
 
-    if configs['Convert_To_Mcpack'] == True: 
-      mcpack_folder = image_details[2]+".mcpack"
-      path_mcpack = mcpack_folder+"\\textures\\environment\\overworld_cubemap"
-      MkJsonPackDetailsFile().makethemanifest().makepackicon(self.old_names[3], mcpack_folder, "\\pack_icon.png")
-      for move_no in range (0, 6): 
-        sky_names = [self.old_names[move_no], self.new_names[move_no]]
-        copy(tempdir+sky_names[0], tempdir+path_mcpack+"\\"+sky_names[1])
-      self.MoveToOut(mcpack_folder)
-    
-    if configs['Convert_To_Zip'] == False and configs['Convert_To_Mcpack'] == False: 
-      output_folder = configs['Output_Folder']+"/MC-Sky-Builder/"+strftime("(%b-%d-%Y) %H-%M-%S")
-      if path.exists(output_folder): rmtree(output_folder)
-      copytree(tempdir, output_folder) 
-    return self
+    def zip_mcpack_or_both(self, mergejavasky):
+        if configs.get('Convert_To_Zip'):
+            path_zip = path.join(self.zippack_file(), "assets", "minecraft", "mcpatcher", "sky", "world0")
+            super().make_pack_meta()
+            self.make_pack_icon(self.old_names[3], self.zippack_file(), "pack.png")
+            mergejavasky.save(path.join(tempdir, path_zip, 'cloud1.png'))
+            for i in range(1, 9):
+                if i != 5:
+                    sky_properties = f"sky{i}.properties"
+                    copy(path.join("resource", "mcpatcher", "sky", "world0", sky_properties),
+                         path.join(tempdir, path_zip, sky_properties))
+            self.move_to_out(self.zippack_file())
+
+        if configs.get('Convert_To_Mcpack'): 
+            path_mcpack = path.join(self.mcpack_file(), "textures", "environment", "overworld_cubemap")
+            super().make_manifest()
+            self.make_pack_icon(self.old_names[3], self.mcpack_file(), "pack_icon.png")
+            for i in range(6):
+                old_name = self.old_names[i]
+                new_name = self.new_names[i]
+                copy(path.join(tempdir, old_name), path.join(tempdir, path_mcpack, new_name))
+            self.move_to_out(self.mcpack_file())
+
+        if not configs.get('Convert_To_Zip') and not configs.get('Convert_To_Mcpack'):
+            output_folder = path.join(configs['Output_Folder'], "MC-Sky-Builder", strftime("(%b-%d-%Y) %H-%M-%S"))
+            if path.exists(output_folder):
+                rmtree(output_folder)
+            copytree(tempdir, output_folder)
+        return self
