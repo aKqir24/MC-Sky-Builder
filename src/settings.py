@@ -8,27 +8,29 @@ class SettingsWindow(Toplevel):
   def __init__ (self, settingsbutton):
     super().__init__()
     self.settings_button = settingsbutton
-    
-  #? show the settings window
-  def show(self):
+    self.pack_to_zip_var = BooleanVar()
+    self.pack_to_mcpack_var = BooleanVar()
+
+    #? show the settings window
     self.focus_set()
     self.title("Settings")
     self.geometry('393x181')
     self.config(background=db)
     self.resizable(False, False)
-    self.iconphoto(True, PhotoImage(file=f'{title_icon_path}manufacturing.png'))
+    self.iconbitmap(f'{title_icon_path}manufacturing.ico')
     self.settings_button.config(command=self.focus_set)
-
+    
+  
     # Resolution using, scale of the output
-    output_resolution = Scale( self, to=30, from_=0, length=134, borderwidth=0, showvalue=0, bg=b2, fg=f,
-                             width=10, orient='horizontal', activebackground=ab,sliderlength=20, sliderrelief= rel, 
-                             troughcolor=b,resolution=10, highlightbackground=db, highlightcolor=db)
+    output_resolution = Scale( self, to=3, from_=0, length=134, borderwidth=0, showvalue=0, bg=b2, fg=f,
+                               width=10, orient='horizontal', activebackground=ab,sliderlength=20, sliderrelief= rel, 
+                               troughcolor=b, resolution=1, highlightbackground=db, highlightcolor=db )
 
     match configs['Image_Size']:
       case 256: output_resolution.set(0)
-      case 512: output_resolution.set(10)
-      case 1024: output_resolution.set(20)
-      case 2048: output_resolution.set(30)
+      case 512: output_resolution.set(1)
+      case 1024: output_resolution.set(2)
+      case 2048: output_resolution.set(3)
 
     factory_res = Frame(self, height=15, width=150, bg=db, pady= 1)
     res_256 = Label(factory_res, text="256", bg=db, fg=f, pady= 1, bd=0)
@@ -43,15 +45,13 @@ class SettingsWindow(Toplevel):
     res_2048.place(x=109.5, y=1)
     output_resolution.place(x=10, y=74)
 
-    # checkbox for packing options
-    pack_to_zip_var = BooleanVar()
-    pack_to_mcpack_var = BooleanVar()
+    # checkbox for packing options 
     com = Frame(self, height=40, width=140, bg=db)
     com.place(x=242, y=65)
-    packing_zip_ch = Checkbutton( com, variable=pack_to_zip_var, bg=db, fg=b2, bd=0,
+    packing_zip_ch = Checkbutton( com, variable=self.pack_to_zip_var, bg=db, fg=b2, bd=0,
                                 activebackground=db, padx=-17, activeforeground=b2, relief=rel )
     
-    packing_mcpack_ch = Checkbutton( com, variable=pack_to_mcpack_var, bg=db, fg=b2, bd=0,
+    packing_mcpack_ch = Checkbutton( com, variable=self.pack_to_mcpack_var, bg=db, fg=b2, bd=0,
                                 activebackground=db, padx=-17, activeforeground=b2, relief=rel )
      
     packing_mcpack_ch.place(x=1)
@@ -79,8 +79,9 @@ class SettingsWindow(Toplevel):
       for index in range(0, len(the_outputfolder_path), 1000):
          output_folder_label.config(text=the_outputfolder_path[index:index+49]+"...")
 
-    picked_options = [ output_folder_label, output_resolution, pack_to_zip_var, pack_to_mcpack_var ]
-    settingbuttons = SettingsOptionsButtons( self, picked_options)
+    picked_options = [ output_resolution, packing_zip_ch, packing_mcpack_ch, output_folder_label ]
+    option_variables = [ self.pack_to_zip_var, self.pack_to_mcpack_var ]
+    settingbuttons = SettingsOptionsButtons(picked_options, self, option_variables)
     
     # all buttons used 
     Button(self, command=settingbuttons.ask_output_folder, text="CHANGE", relief=rel, 
@@ -102,48 +103,46 @@ class SettingsWindow(Toplevel):
 
    
 class SettingsOptionsButtons:
-    def __init__ (self, settings_window, options):
-      self.packzipch = options[2]
-      self.packmcpackch = options[3]
-      self.output_resolution = options[1]
-      self.output_folder_label = options[0]
-      self.settingswindow = settings_window
-      self.settingsconfigs = ConfigManagement(options[1], options[2], options[3])
+    def __init__ (self, options, settingswindow, option_variables):
+      self.options=options
+      self.settingswindow=settingswindow
+      self.settingsconfigs = ConfigManagement(options[0], option_variables[0], option_variables[1])
       
     closesettings = lambda self:self.settingswindow.destroy()
-    aboutprogram = lambda self:about.aboutWin(self.settingswindow)
+    aboutprogram = lambda self:about.AboutWindow().show()
 
     def ask_output_folder(self):
-      userdesktop = default_output_path()
+      userdesktop = default_output_path
       the_outputfolder_path = filedialog.askdirectory( initialdir=userdesktop, title="Select Output Folder" )
       self.settingsconfigs.userpath(the_outputfolder_path)
       self.settingswindow.focus_set()
       for index in range(0, len(the_outputfolder_path), 1000):
-        self.output_folder_label.config(text=the_outputfolder_path[index:index+45]+"...")
+        self.options[3].config(text=the_outputfolder_path[index:index+45]+"...")
 
-    # TODO: Improve the simple dialog by making your own      
+    # TODO: Improve the simple dialog by making my own      
     def customoutres(self):
         chosen_res = simpledialog.askinteger( title=" ", prompt="Enter Custom Resolution?", minvalue=256 )
         if chosen_res == None: chosen_res = 256
-        self.settingsconfigs.outputres(chosen_res)
+        print(chosen_res)
+        self.settingsconfigs.outputres(int(chosen_res))
         
     def resetsettings(self):
         rm(config_file)
         resetto().setdefaults()
-        self.output_resolution.set(0)
-        self.packzipch.deselect()
-        self.packmcpackch.deselect()
+        self.options[0].set(0)
+        self.options[1].deselect()
+        self.options[2].deselect()
         the_outputfolder_path = readconfig()[1]
         for index in range(0, len(the_outputfolder_path), 1000):
-          self.output_folder_label.config(text=the_outputfolder_path[index:index+49]+"...")
+          self.options[3].config(text=the_outputfolder_path[index:index+49]+"...")
 
     def applysettings(self):
+      settingswindow=self
       def savelabel():
-        setsvlb = Label(self.self, bg=db, fg=f, text="Saved!!")
-        setsvlb.place(x=271, y=125)
-        sleep(2)
+        setsvlb = Label(self.settingswindow, bg=db, fg=f, text="Saved!!")
+        setsvlb.place(x=271, y=125), sleep(2)
         setsvlb.destroy()
 
-      Thread(target=self.settingsconfigs.writesettingsconfig).start()
+      Thread(target=self.settingsconfigs.write_settings_config).start()
       Thread(target=savelabel).start()
       self.settingswindow.focus_set()
