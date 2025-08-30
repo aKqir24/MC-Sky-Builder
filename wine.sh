@@ -65,12 +65,12 @@ function program {
 }
 
 function progress {
-while :; do
-  progress_text=("." ".." "..." " ")
-  for loading in {0..2}; do 
-     clear ; echo "Running Program${progress_text[$loading]}" ; sleep 1
-  done
-done
+	while :; do
+		progress_text=("." ".." "..." " ")
+		for loading in {0..2}; do 
+			clear ; echo "Running Program${progress_text[$loading]}" ; sleep 1
+		done
+	done
 }
 
 # Options to Choose When running the Program
