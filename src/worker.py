@@ -53,8 +53,8 @@ class ToDoDuringStartup:
           
   #? Set the default output folder path
   def setdefaults(self):
-    if not path.exists(config_file):
-        readusingjson = dump(configs, raw_config, indent=4)
+    # chosen_res, getchconjavzip, getchconmcpack, userpath
+    if not path.exists(config_file): writeconfig()
     readconfig()
     return self
       

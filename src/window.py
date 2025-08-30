@@ -1,12 +1,13 @@
-# Program Information
-__author__: "Akqir"
-__version__: "1.2.0"
-__program_name__: "MC-Sky-Builder"
-__description__: "Converts an Image into a sky-overlay pack for minecraft..."
+#* At First I will GOD is Good All The Time :) *#
+from config import *
+from tkinter import Tk, Button, _tkinter
+from create import CreateCubeIMG, PackingPack
+from worker import GetImageDetails, filedialog, Toplevel, Label, StringVar
+from settings import SettingsWindow, Frame, BooleanVar, Thread, resetto
 
 class ButtonsCommands:
   #? Functions to be called by the button
-  def ask_image_folder(mainwindow, Imageprev, Imageinput): 
+  def ask_image_folder(self, Imageprev, Imageinput): 
     current_dir = configs['Output_Folder']
     the_imagefolder_path = filedialog.askopenfilename( initialdir = current_dir, title = "Select Image File",
                              filetypes = (("Image Files","*.jpg *.png *.jpeg"),("Image Files","*.jpg *.png *.jpeg")))
@@ -20,7 +21,6 @@ class ButtonsCommands:
         with Image.open(the_imagefolder_path).resize((368,218)) as intputimg:
           chosen_img = ImageTk.PhotoImage(intputimg)
           Imageprev.config(image=chosen_img, height= 210, width= 350)
-        mainwindow.mainloop()
 
   def launch_create_sky(createSKY):
     from tkinter.ttk import Progressbar
@@ -55,50 +55,42 @@ class ButtonsCommands:
 
   def goto_output_folder():
     from subprocess import Popen as showfolder
-    outpath = configs['Output_Folder']
-    coroutoath = outpath.replace("/", "\\")
-    showfolder(['explorer', coroutoath])
+    outpath = str(configs['Output_Folder'].replace("/", "\\"))
+    showfolder(['explorer', outpath])
 
-class MainWindow(): 
-  def WindowInterface():
+class MainWindow(Tk): 
     #* Main window of the program
-    mainwindow = Tk()
-    mainwindow.geometry('376x268')
-    mainwindow.title("MC Sky Builder")
-    mainwindow.config(background="#283149")
-    mainwindow.iconphoto(True, PhotoImage(file=f'{title_icon_path}app.png'))
-    mainwindow.resizable(False, False)
+    def __init__(self):
+        super().__init__()
+        self.geometry('376x268')
+        self.title("MC Sky Builder")
+        self.config(background="#283149")
+        #self.iconphoto(True, PhotoImage(file=f'{title_icon_path}app.png'))
+        self.resizable(False, False)
 
-    # Labels/Frames of the path & location
-    Imageinput = Label( mainwindow, text="Image Folder :", bg="#283149", fg=f, pady= 1, bd=0 )
-    Fileprevb= Frame( mainwindow, bg="#303b58", height= 184, width= 354, bd=0 )
-    Fileprev = Frame( mainwindow, bg="#404b69", height= 180, width= 350, bd=0 )
-    Imageprev = Label( Fileprev, bg="#404b69", justify='left')
-    Fileprev.place(x=14, y= 14), Fileprevb.place(x=12, y= 12)
-    Imageprev.place(x=0, y=0), Imageinput.place(x=8, y= 202)  
+        # Labels/Frames of the path & location
+        Imageinput = Label( self, text="Image Folder :", bg="#283149", fg=f, pady= 1, bd=0 )
+        Fileprevb= Frame( self, bg="#303b58", height= 184, width= 354, bd=0 )
+        Fileprev = Frame( self, bg="#404b69", height= 180, width= 350, bd=0 )
+        Imageprev = Label( Fileprev, bg="#404b69", justify='left')
+        Fileprev.place(x=14, y= 14), Fileprevb.place(x=12, y= 12)
+        Imageprev.place(x=0, y=0), Imageinput.place(x=8, y= 202)  
     
-    def FrontButtons():
-      # Place the main buttons
-      Button( mainwindow, text="OPEN", font=font_details[1], bg=ab, fg=f, activebackground=f, padx=x, pady=y, bd= yb, activeforeground=ab, 
-              relief=rel, command=lambda: ButtonsCommands.ask_image_folder(mainwindow, Imageprev, Imageinput) ).place( x=10, y=yp )
-      Button( mainwindow, text="FOLDER", font=font_details[1], bg=ab, fg=f, activebackground = f, activeforeground=ab, 
-              padx=x, pady=y, relief=rel, command = ButtonsCommands.goto_output_folder, bd= yb ).place( x=89, y=yp )
-      createSKY = Button( mainwindow, text="CREATE", font=font_details[1], bd=yb, fg=f, activebackground = f, padx = x, pady = y, 
-                          bg = ab, relief= rel, activeforeground=ab,  command=lambda: ButtonsCommands.launch_create_sky(createSKY))
-      showSettings = Button( mainwindow, text="SETTINGS", font=font_details[1], bg=ab, fg=f, padx = x, pady = y,
-                              activebackground= f, activeforeground=ab, relief= rel, bd= yb )
-      showSettings.config(command = SettingsWindow(showSettings).loadsettings)
-      createSKY.place( x=180.499, y=yp )
-      showSettings.place( x=270.499, y=yp )
-      
-    # Call Window Loop Clossing
-    return FrontButtons(), mainwindow.mainloop() 
+        # Place the main buttons
+        Button( self, text="OPEN", font=font_details[1], bg=ab, fg=f, activebackground=f, padx=x, pady=y, bd= yb, activeforeground=ab, 
+                  relief=rel, command=lambda: ButtonsCommands.ask_image_folder(self, Imageprev, Imageinput) ).place( x=10, y=yp )
+        Button( self, text="FOLDER", font=font_details[1], bg=ab, fg=f, activebackground = f, activeforeground=ab, 
+                  padx=x, pady=y, relief=rel, command = ButtonsCommands.goto_output_folder, bd= yb ).place( x=89, y=yp )
+        createSKY = Button( self, text="CREATE", font=font_details[1], bd=yb, fg=f, activebackground = f, padx = x, pady = y, 
+                              bg = ab, relief= rel, activeforeground=ab,  command=lambda: ButtonsCommands.launch_create_sky(createSKY))
+        showSettings = Button( self, text="SETTINGS", font=font_details[1], bg=ab, fg=f, padx = x, pady = y,
+                                  activebackground= f, activeforeground=ab, relief= rel, bd= yb )
+        showSettings.config(command = lambda: SettingsWindow(showSettings).show())
+        createSKY.place( x=180.499, y=yp )
+        showSettings.place( x=270.499, y=yp )
+           
+        # Call Window Loop Clossing
+        self.mainloop()
 
 if __name__ == '__main__':
-#* At First I will GOD is Good All The Time :) *#
-    from config import *
-    from tkinter import Tk, Button, _tkinter
-    from create import CreateCubeIMG, PackingPack
-    from worker import GetImageDetails, filedialog, Toplevel, Label, StringVar
-    from settings import SettingsWindow, Frame, BooleanVar, Thread, resetto
-    resetto().makethetempdir().setdefaults(), MainWindow.WindowInterface()
+    resetto().makethetempdir().setdefaults(), MainWindow()
