@@ -38,7 +38,7 @@ class ButtonsCommands:
       progresswindow.geometry('380x90')
       progresswindow.title("Building Sky")
       progresswindow.resizable(False, False)
-      progresswindow.iconphoto(True, PhotoImage(file=f'{title_icon_path}conversion.png'))
+      progresswindow.iconbitmap(f'{title_icon_path}conversion.ico')
       progresswindow.config(background='#283149')
       createSKY.config(command=progresswindow.focus_set)
       create_process = Progressbar(progresswindow, length=338)
@@ -65,7 +65,7 @@ class MainWindow(Tk):
         self.geometry('376x268')
         self.title("MC Sky Builder")
         self.config(background="#283149")
-        #self.iconphoto(True, PhotoImage(file=f'{title_icon_path}app.png'))
+        self.iconbitmap(f'{title_icon_path}app.ico')
         self.resizable(False, False)
 
         # Labels/Frames of the path & location
@@ -85,7 +85,7 @@ class MainWindow(Tk):
                               bg = ab, relief= rel, activeforeground=ab,  command=lambda: ButtonsCommands.launch_create_sky(createSKY))
         showSettings = Button( self, text="SETTINGS", font=font_details[1], bg=ab, fg=f, padx = x, pady = y,
                                   activebackground= f, activeforeground=ab, relief= rel, bd= yb )
-        showSettings.config(command = lambda: SettingsWindow(showSettings).show())
+        showSettings.config(command = lambda: SettingsWindow(showSettings))
         createSKY.place( x=180.499, y=yp )
         showSettings.place( x=270.499, y=yp )
            

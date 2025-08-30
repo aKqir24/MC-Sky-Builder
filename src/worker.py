@@ -60,26 +60,41 @@ class ToDoDuringStartup:
       
 class ConfigManagement:
   #* Simply send the values of your options in the config
-    def __init__(self, imgresolution, packzipval, packmcpackval ):
-      self.temp_config: dict = {}
-      self.packzipval = packzipval
-      self.imgresolution = imgresolution
-      self.packmcpackval = packmcpackval 
+    def __init__(self, output_resolution, pack_zip_val, pack_mcpack_val):
+      self.output_resolution = output_resolution
+      self.pack_zip_val=pack_zip_val
+      self.pack_mcpack_val=pack_mcpack_val
+      self.stored_config = configs
+      self.custom_recent_resolution=None
+      self.scale_recent_resolution=None
 
-    userpath = lambda folder: self.temp_config.update({"userpath": folder})
+    userpath = lambda self, folder: self.stored_config.update({"Output_Folder": folder})
 
-    def outputres(self, res=None ):
-      if res == None: imgresolution = self.imgresolution.get() 
-      else: imgresolution = res 
-      match imgresolution:
-        case int(0): chosen_res = 256
-        case int(10): chosen_res = 512
-        case int(20): chosen_res = 1024
-        case int(30): chosen_res = 2048
-      self.temp_config.update({"img_res": chosen_res})
+    def outputres(self, resolution):
+      scale_resolution=self.output_resolution.get()
+      if resolution > 4 and resolution is not None:
+        self.custom_recent_resolution=resolution
+        chosen_resolution = self.custom_recent_resolution
+      elif supported_resolutions[resolution] in supported_resolutions \
+              and not self.scale_recent_resolution == supported_resolutions[resolution]:
+        chosen_resolution=supported_resolutions[resolution]
+        print(supported_resolutions[resolution])
+        self.custom_recent_resolution=None
+      else:
+          if self.custom_recent_resolution != None:
+            chosen_resolution=self.custom_recent_resolution
+          else:
+            chosen_resolution=supported_resolutions[resolution]
+          print(3)
 
-    write_settings_config = lambda self: \
-        writeconfig(self.temp_config['img_res'], packzipval.get(), packmcpackval.get(), self.temp_config['userpath'])
+      self.scale_recent_resolution=supported_resolutions[scale_resolution]
+      self.stored_config.update({"Image_Size": chosen_resolution})
+
+    def write_settings_config(self):
+        self.outputres(self.output_resolution.get()) 
+        self.stored_config.update({"Convert_To_Zip": self.pack_zip_val.get()})
+        self.stored_config.update({"Convert_To_Mcpack": self.pack_mcpack_val.get()})
+        writeconfig()
     
 class MkJsonPackDetailsFile:
   pack_des = "This SkyOverlay Was Made By Using §cAkqir's §f(§bMC §fSky Builder) Software..." 

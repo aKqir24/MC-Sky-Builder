@@ -1,8 +1,11 @@
 from tkinter import Tk, Toplevel
 
-def aboutWin(settingswindow):
-  aboutwindow = Toplevel()
-  aboutwindow.geometry('350x400')
-  aboutwindow.title("About")
-  settingswindow.wait_window()
-  aboutwindow.destroy() 
+class AboutWindow(Toplevel):
+   def __init__ (self):
+       super().__init__()
+
+   def show(self):
+      aboutwindow = Toplevel()
+      aboutwindow.geometry('350x400')
+      aboutwindow.title("About") 
+      aboutwindow.destroy() 

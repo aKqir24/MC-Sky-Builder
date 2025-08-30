@@ -23,6 +23,7 @@ ext, curve_radius = [".png", 2]
 # interface values
 rel = 'flat'
 yp, x, y , yb = [ 225, 15, 3, 2 ]
+supported_resolutions = [ 256, 512, 1024, 2048 ]
 db, b, b2, f, ab = [ "#283149","#404b69", "#333e5f", "#dbedf3", "#00818a" ]
 
 # folder and file paths
@@ -55,11 +56,6 @@ def readconfig():
     for key in configs: 
         configs[f"{key}"] = json_open[f'{key}'] 
 
-def writeconfig(config_inputs=[]):
-    with open(config_file, 'w') as raw_config:
-        if not config_inputs == '':
-            for key in configs:
-                for input in config_inputs:
-                    if not input == "": configs[f"{key}"] = input
-    
-        readusingjson = dump(configs, raw_config, indent=4)
+def writeconfig():
+    with open(config_file, 'w') as raw_config: 
+        dump(configs, raw_config, indent=4)
