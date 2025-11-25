@@ -1,8 +1,8 @@
 
 <div align="center"><img src="resource/icon.png" height="200" ></img>
 <h1>MC-Sky-Builder</h1>
-<img src="https://img.shields.io/badge/LICENSE-GPL--v3.0-blue?style=for-the-badge"></img>
-<img src="https://img.shields.io/badge/build-pending-yellow?style=for-the-badge"></img>
+<img src="https://img.shields.io/badge/LICENSE-GPL--v3.0-blue?style=flat"></img>
+<img src="https://img.shields.io/badge/build-pending-yellow?style=flat"></img>
     
 <d>A Program I Made That, Turns Your Chosen Image Into A Sky Overlay Pack Or Cubemap, And Exports It For Both For Java & Bedrock(Windows 10 Edition) Platforms.</d>
 </div>
@@ -40,5 +40,6 @@ compile.bat
 <h2>WARNING⚠!!</h2>
 <d>Some images might not load or result into a perfect sky overlay, due to the limitations of my ability to code a better one and of the modules.</d>
 </div>
+
 
 
