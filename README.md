@@ -1,6 +1,7 @@
 
 <div align="center"><img src="resource/icon.png" height="200" ></img>
 <h1>MC-Sky-Builder</h1>
+<img src="https://img.shields.io/badge/LICENSE-GPL--v3.0-blue?style=for-the-badge"></img>
 <img src="https://img.shields.io/badge/build-pending-yellow?style=for-the-badge"></img>
     
 <d>A Program I Made That, Turns Your Chosen Image Into A Sky Overlay Pack Or Cubemap, And Exports It For Both For Java & Bedrock(Windows 10 Edition) Platforms.</d>
@@ -19,7 +20,7 @@
 The program was only compiled in windows 10 and may not work in some systems, just simply download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and double click the `MC_Sky_Builder.exe` to start the program.
 
 ## Compiling
-In order for this to work you need `pyhon`, `pillow`, `numpy` and if your in a linux distro you might need to install tkinter along with the dependencies.
+In order for this to work you need `python`, `pillow`, `numpy` and if your in a linux distro you might need to install tkinter along with the dependencies.
 
 
 ```bat
@@ -39,4 +40,5 @@ compile.bat
 <h2>WARNING⚠!!</h2>
 <d>Some images might not load or result into a perfect sky overlay, due to the limitations of my ability to code a better one and of the modules.</d>
 </div>
+
 
