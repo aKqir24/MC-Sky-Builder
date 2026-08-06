@@ -87,16 +87,16 @@ class ConfigManagement:
 
 class MkJsonPackDetailsFile:
     pack_description = "This SkyOverlay Was Made By Using §cAkqir's §f(§bMC §fSky Builder) Software..."
-    pack_name = lamba self: image_details[2] + " (Sky Overlay)"
-    mcpack_file = lamba self: self.pack_name() + ".mcpack"
-    zippack_file = lamba self: self.pack_name() + ".zip"
+    pack_name = lambda self: image_details[2] + " (Sky Overlay)"
+    mcpack_file = lambda self: self.pack_name() + ".mcpack"
+    zippack_file = lambda self: self.pack_name() + ".zip"
 
     def make_manifest(self):
         from uuid import uuid4
         manifest = {
             "format_version": 1,
             "header": {
-                "description": self.pack_description,`
+                "description": self.pack_description,
                 "name": self.pack_name(),
                 "uuid": str(uuid4()),
                 "version": [1, 0, 0],

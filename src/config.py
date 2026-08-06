@@ -10,10 +10,8 @@ __description__: "Converts an Image into a sky-overlay pack for minecraft..."
 
 from json import dump, load
 from tempfile import gettempdir
-from tkinter import PhotoImage
 from time import sleep, strftime
 from PIL import Image, ImageFont, ImageTk
-from winreg import HKEY_CURRENT_USER, OpenKey, QueryValueEx
 from os import getenv, path, remove as rm, mkdir, makedirs, name, rename
 
 #? Image Input / Output Values
@@ -23,27 +21,48 @@ ext, curve_radius = [".png", 2]
 # interface values
 rel = 'flat'
 yp, x, y , yb = [ 225, 15, 3, 2 ]
-supported_resolutions = [ 256, 512, 1024, 2048 ]
+supported_resolutions = {0: 256, 1: 512, 2: 1024, 3: 2048}
 db, b, b2, f, ab = [ "#283149","#404b69", "#333e5f", "#dbedf3", "#00818a" ]
 
 # folder and file paths
 noto_font = str(path.join('resource', 'noto_sans.ttf'))
-font_details = [(ImageFont.truetype(noto_font, 9).getname()[1], 8), ('Segoe UI',10,'normal')]
+try:
+    noto_font_name = ImageFont.truetype(noto_font, 9).getname()[1]
+except Exception:
+    noto_font_name = "sans-serif"
+
+font_details = [
+    (noto_font_name, 8, 'normal'),
+    (noto_font_name, 9, 'normal'),
+    (noto_font_name, 9, 'bold'),
+    (noto_font_name, 10, 'normal'),
+    (noto_font_name, 10, 'bold')
+]
 title_icon_path = str(path.join('resource', 'title', ''))
 home_user= path.expanduser("~")
 tempdir = f'{gettempdir()}/MC-Sky-Builder'
 
+from pathlib import Path
+
 #? Identify the 'OS' your using...
+default_output_path = str(Path.home() / "Desktop")
+if not path.exists(default_output_path):
+    default_output_path = str(Path.home())
+
 if name == "nt":
-  config_folder = getenv('APPDATA')+'\\mcskymaker' 
-  config_file = config_folder+"\\settings.json"
-   
-  desktop_regkey = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
-  with OpenKey(HKEY_CURRENT_USER, desktop_regkey) as key:
-    default_output_path = path.expandvars( QueryValueEx(key, "Desktop")[0] )
+  config_folder = getenv('APPDATA')+'\\mcskymaker' if getenv('APPDATA') else str(Path.home() / 'AppData' / 'Roaming' / 'mcskymaker')
+  config_file = config_folder + "\\settings.json"
+  try:
+    from winreg import HKEY_CURRENT_USER, OpenKey, QueryValueEx
+    desktop_regkey = r"Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders"
+    with OpenKey(HKEY_CURRENT_USER, desktop_regkey) as key:
+      default_output_path = path.expandvars( QueryValueEx(key, "Desktop")[0] )
+  except Exception:
+    pass
     
 else:
-    print('This program is only compatible with windows...')
+    config_folder = str(Path.home() / '.mcskymaker')
+    config_file = config_folder + "/settings.json"
 
 # config dictionary / default config
 configs = { "Image_Size": 256, "Output_Folder": default_output_path, 

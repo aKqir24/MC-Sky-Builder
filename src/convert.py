@@ -72,7 +72,7 @@ class ConvertDetails(CreateCubeIMG):
     pross_interval = current_percent+pv
     current_percent = pross_interval
     self.percentage.set(str(int(current_percent))+"%")
-    self.create_process['value']=current_percent
+    self.create_process.set(current_percent / 100.0)
     self.progresswindow.update_idletasks()
     return current_percent
 
