@@ -6,11 +6,12 @@
 
 """
 
-import _tkinter
+import customtkinter as ctk
 from config import *
 from PIL import Image
 from numpy import concatenate, array
 from worker import PackingPack, messagebox
+from tkinter import TclError
 
 class CreateCubeIMG:
     def __init__(self, progress_window, create_process, percentage):
@@ -32,7 +33,7 @@ class CreateCubeIMG:
                         return
                     self.progress_window.title(f"Building Sky{dots}")
                     sleep(1)
-        except (_tkinter.TclError, RuntimeError, ValueError):
+        except (TclError, RuntimeError, ValueError):
             pass
 
     def merge_sky_edges(self, correct_position, blend_width):
@@ -151,7 +152,7 @@ class CreateCubeIMG:
                     elif phase == 2:
                         crop_merged_image(packsky.old_names, save_merged)
                     elif phase == 3:
-                        packsky().ZipMcpackOrBoth(self.merge_java_sky()).CleanUp()
+                        packsky().zip_mcpack_or_both(self.merge_java_sky()).clean_up()
 
-        except (IndexError, _tkinter.TclError):
+        except (IndexError, TclError):
             self.no_image_handler()

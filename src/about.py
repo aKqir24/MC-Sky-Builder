@@ -1,11 +1,11 @@
-from tkinter import Tk, Toplevel
+import customtkinter as ctk
 
-class AboutWindow(Toplevel):
+class AboutWindow(ctk.CTkToplevel):
    def __init__ (self):
        super().__init__()
 
    def show(self):
-      aboutwindow = Toplevel()
+      aboutwindow = ctk.CTkToplevel()
       aboutwindow.geometry('350x400')
       aboutwindow.title("About") 
       aboutwindow.destroy() 
