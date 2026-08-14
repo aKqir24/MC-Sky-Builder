@@ -3,12 +3,15 @@
     Fetches the conversion details & does it with create.py
 
 """
-from create import CreateCubeIMG
+from create import CubeMapImageProcessor
+from dialogs import getimageError
 from tkinter import messagebox
 from os import remove as rm
 from config import *
 
-class ConvertDetails(CreateCubeIMG):
+class SkyImageConverter(CubeMapImageProcessor):
+  getimageError = getimageError
+
   def __init__ (self, imgIn, imgOut, progresswindow, create_process, percentage):
     super().__init__(progresswindow, create_process, percentage)
     self.imgIn = imgIn
@@ -42,7 +45,7 @@ class ConvertDetails(CreateCubeIMG):
           if j<edge: face2 = 4      # top
           elif j>=2*edge: face2 = 5 # bottom
           else: face2 = face
-          (x,y,z) = ConvertDetails.outImgToXYZ(i,j,face2,edge)
+          (x,y,z) = SkyImageConverter.outImgToXYZ(i,j,face2,edge)
           theta, r = [(atan2(y,x)), (hypot(x,y))] # range -pi to pi
           phi = atan2(z,r)                        # range -pi/2 to pi/2
           # source img coords

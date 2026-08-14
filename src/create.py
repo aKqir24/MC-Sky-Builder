@@ -10,16 +10,21 @@ import customtkinter as ctk
 from config import *
 from PIL import Image
 from numpy import concatenate, array
-from worker import PackingPack, messagebox
+from worker import ResourcePackBuilder, messagebox
 from tkinter import TclError
 
-class CreateCubeIMG:
+class CubeMapImageProcessor:
     def __init__(self, progress_window, create_process, percentage):
         self.percentage = percentage
         self.progress_window = progress_window
         self.create_process = create_process
 
-    no_image_handler = lambda self: ConvertDetails.getimageError(self)
+    def no_image_handler(self):
+        from convert import SkyImageConverter
+        return SkyImageConverter.getimageError(self)
+
+    noimagehandler = no_image_handler
+    getcreatesky = lambda self: self.get_create_sky()
 
     def loading_title(self):
         """Updates the progress window title while building the sky."""
@@ -113,10 +118,11 @@ class CreateCubeIMG:
             width, height = img_in.size
             img_out = Image.new("RGB", (width, int(width * 3 / 4)), "black")
 
-            converter = ConvertDetails(img_in, img_out, self.progress_window, self.create_process, self.percentage)
+            from convert import SkyImageConverter
+            converter = SkyImageConverter(img_in, img_out, self.progress_window, self.create_process, self.percentage)
             pv, correct_pos, blend_width = converter.OutputValues((width, height))
             progress_value = converter.convertBack(pv)
-            packsky = PackingPack
+            packsky = ResourcePackBuilder
 
             name_map = [
                 ["", "", "Top", ""],

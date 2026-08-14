@@ -33,11 +33,11 @@ except Exception:
     noto_font_name = "sans-serif"
 
 font_details = [
-    (noto_font_name, 8, 'normal'),
     (noto_font_name, 10, 'normal'),
-    (noto_font_name, 10, 'bold'),
-    (noto_font_name, 12, 'normal'),
-    (noto_font_name, 12, 'bold')
+    (noto_font_name, 11, 'normal'),
+    (noto_font_name, 11, 'bold'),
+    (noto_font_name, 13, 'normal'),
+    (noto_font_name, 13, 'bold')
 ]
 title_icon_path = str(path.join('resource', 'title', ''))
 home_user= path.expanduser("~")

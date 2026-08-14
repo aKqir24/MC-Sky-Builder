@@ -4,9 +4,10 @@ from threading import Thread
 import customtkinter as ctk
 from customtkinter import BooleanVar, StringVar
 from tkinter import filedialog
-from worker import ToDoDuringStartup as resetto, ConfigManagement, rm, path, load
+from worker import EnvironmentInitializer as resetto, ConfigurationManager as ConfigManagement
+from os import remove as rm, path
 
-class SettingsWindow(ctk.CTkToplevel):  
+class SkySettingsWindow(ctk.CTkToplevel):
   def __init__ (self, settingsbutton):
     super().__init__()
     self.settings_button = settingsbutton
@@ -15,7 +16,7 @@ class SettingsWindow(ctk.CTkToplevel):
 
     self.focus_set()
     self.title("Settings")
-    self.geometry('393x181')
+    self.geometry('460x220')
     self.configure(fg_color=db)
     self.resizable(False, False)
     try:
@@ -23,90 +24,65 @@ class SettingsWindow(ctk.CTkToplevel):
     except Exception:
         pass
     self.settings_button.configure(command=self.focus_set)
-    
-    # Resolution slider with modern CustomTkinter styling
-    output_resolution = ctk.CTkSlider( self, to=3, from_=0, width=134, fg_color=b, progress_color=ab, button_color=ab, button_hover_color="#006b73", number_of_steps=3, height=16 )
-
-    match configs['Image_Size']:
-      case 256: output_resolution.set(0)
-      case 512: output_resolution.set(1)
-      case 1024: output_resolution.set(2)
-      case 2048: output_resolution.set(3)
-
-    factory_res = ctk.CTkFrame(self, height=15, width=150, fg_color=db, corner_radius=0)
-    label_font = font_details[1]
-    res_256 = ctk.CTkLabel(factory_res, text="256", fg_color=db, text_color=f, font=label_font)
-    res_512 = ctk.CTkLabel(factory_res, text="512", fg_color=db, text_color=f, font=label_font)
-    res_1024 = ctk.CTkLabel(factory_res, text="1024", fg_color=db, text_color=f, font=label_font)
-    res_2048 = ctk.CTkLabel(factory_res, text="2048", fg_color=db, text_color=f, font=label_font)
-
-    factory_res.place(x=12, y=98)
-    res_256.place(y=1)
-    res_512.place(x=38, y=1)
-    res_1024.place(x=72, y=1)
-    res_2048.place(x=109.5, y=1)
-    output_resolution.place(x=12, y=75)
 
     # Checkboxes for packing options with built-in text
     label_font = font_details[1]
     packing_mcpack_ch = ctk.CTkCheckBox( self, text="Convert Into .mcpack", variable=self.pack_to_mcpack_var, fg_color=ab, hover_color="#006b73", font=label_font, text_color=f, width=18, height=18, corner_radius=4 )
     packing_zip_ch = ctk.CTkCheckBox( self, text="Convert Into .zip", variable=self.pack_to_zip_var, fg_color=ab, hover_color="#006b73", font=label_font, text_color=f, width=18, height=18, corner_radius=4 )
-     
-    packing_mcpack_ch.place(x=225, y=65)
-    packing_zip_ch.place(x=225, y=95)
-  
+
+    packing_mcpack_ch.place(x=250, y=75)
+    packing_zip_ch.place(x=250, y=105)
+
     the_zippacker = configs['Convert_To_Zip']
     the_mcpacker = configs['Convert_To_Mcpack']
     if the_zippacker == False: packing_zip_ch.deselect()
     else: packing_zip_ch.select()
     if the_mcpacker == False: packing_mcpack_ch.deselect()
     else: packing_mcpack_ch.select()
-    
+
     # Modern card background for output path
-    output_path_bg = ctk.CTkFrame(self, fg_color=b, height=26, width=305, corner_radius=6 )
+    output_path_bg = ctk.CTkFrame(self, fg_color=b, height=28, width=360, corner_radius=6 )
     output_folder_label = ctk.CTkLabel(self, fg_color=b, text_color=f, text="", font=font_details[1] )
-    ctk.CTkLabel(self, text="Output Folder", fg_color=db, text_color=f, font=font_details[2]).place(x=12, y=5)
-    ctk.CTkLabel(self, text="Sky Resolution", fg_color=db, text_color=f, font=font_details[2]).place(x=12, y=55)
-    output_path_bg.place(x=77, y= 25)
-    output_folder_label.place(x=82, y= 25)
-    
+    ctk.CTkLabel(self, text="Output Folder", fg_color=db, text_color=f, font=font_details[2]).place(x=16, y=8)
+    ctk.CTkLabel(self, text="Sky Resolution", fg_color=db, text_color=f, font=font_details[2]).place(x=16, y=55)
+    output_path_bg.place(x=84, y= 32)
+    output_folder_label.place(x=90, y= 32)
+
     the_outputfolder_path = configs['Output_Folder']
     if the_outputfolder_path:
       for index in range(0, len(the_outputfolder_path), 1000):
-         output_folder_label.configure(text=the_outputfolder_path[index:index+49]+"...")
+         output_folder_label.configure(text=the_outputfolder_path[index:index+55]+"...")
 
     picked_options = [ output_resolution, packing_zip_ch, packing_mcpack_ch, output_folder_label ]
     option_variables = [ self.pack_to_zip_var, self.pack_to_mcpack_var ]
-    settingbuttons = SettingsOptionsButtons(picked_options, self, option_variables)
-    
+    settingbuttons = SettingsActionHandler(picked_options, self, option_variables)
+
     # Clean modern buttons with uniform aesthetic and even spacing
     btn_font = font_details[2]
-    btn_w = 82
-    btn_y = 145
-    ctk.CTkButton(self, command=settingbuttons.ask_output_folder, text="CHANGE", 
-           font= btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=60, height=24).place(x=12, y=25.2)
-    ctk.CTkButton(self, command=settingbuttons.aboutprogram, text="ABOUT", 
-           font= btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=btn_w, height=26).place(x=12, y=btn_y)
-    ctk.CTkButton(self, command=settingbuttons.resetsettings, text="RESET", 
-           font= btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=btn_w, height=26).place(x=105, y=btn_y)
-    apply = ctk.CTkButton( self, command=settingbuttons.applysettings, text="APPLY", 
-            font=btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=btn_w, height=26 )
-    apply.place(x=198, y=btn_y)
-    ctk.CTkButton(self, command=settingbuttons.closesettings, text="CLOSE", 
-           font= btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=btn_w, height=26).place(x=291, y=btn_y)
-    ctk.CTkButton(self, command=settingbuttons.customoutres, text="OTHER", 
-           font= btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=60, height=24).place(x=155, y=75)
+    btn_w = 96
+    btn_y = 175
+    ctk.CTkButton(self, command=settingbuttons.ask_output_folder, text="CHANGE",
+           font= btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=64, height=26).place(x=16, y=32)
+    ctk.CTkButton(self, command=settingbuttons.aboutprogram, text="ABOUT",
+           font= btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=btn_w, height=30).place(x=16, y=btn_y)
+    ctk.CTkButton(self, command=settingbuttons.resetsettings, text="RESET",
+           font= btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=btn_w, height=30).place(x=124, y=btn_y)
+    apply = ctk.CTkButton( self, command=settingbuttons.applysettings, text="APPLY",
+            font=btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=btn_w, height=30 )
+    apply.place(x=232, y=btn_y)
+    ctk.CTkButton(self, command=settingbuttons.closesettings, text="CLOSE",
+           font= btn_font, fg_color= ab, text_color= f, hover_color="#006b73", corner_radius=6, width=btn_w, height=30).place(x=340, y=btn_y)
 
     self.wait_window()
-    self.settings_button.configure(command = lambda: SettingsWindow(self.settings_button))
+    self.settings_button.configure(command = lambda: SkySettingsWindow(self.settings_button))
 
-   
-class SettingsOptionsButtons:
+
+class SettingsActionHandler:
     def __init__ (self, options, settingswindow, option_variables):
       self.options=options
       self.settingswindow=settingswindow
-      self.settingsconfigs = ConfigManagement(options[0], option_variables[0], option_variables[1])
-      
+      self.settingsconfigs = ConfigurationManager(options[0], option_variables[0], option_variables[1])
+
     closesettings = lambda self:self.settingswindow.destroy()
     aboutprogram = lambda self:about.AboutWindow().show()
 
@@ -119,18 +95,6 @@ class SettingsOptionsButtons:
         for index in range(0, len(the_outputfolder_path), 1000):
           self.options[3].configure(text=the_outputfolder_path[index:index+45]+"...")
 
-    def customoutres(self):
-        dialog = ctk.CTkInputDialog(text="Enter Custom Resolution (min 256):", title="Custom Resolution")
-        input_val = dialog.get_input()
-        try:
-            chosen_res = int(input_val) if input_val else 256
-        except (ValueError, TypeError):
-            chosen_res = 256
-        if chosen_res < 256:
-            chosen_res = 256
-        print(chosen_res)
-        self.settingsconfigs.output_res(int(chosen_res))
-        
     def resetsettings(self):
         rm(config_file)
         resetto().setdefaults()

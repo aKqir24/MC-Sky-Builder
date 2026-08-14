@@ -39,7 +39,7 @@ class GetImageDetails:
         image_details.append(ext)
         return ext
 
-class ToDoDuringStartup:
+class EnvironmentInitializer:
     def make_temp_dir(self):
         if not path.exists(tempdir):
             mkdir(tempdir)
@@ -53,8 +53,7 @@ class ToDoDuringStartup:
         readconfig()
         return self
 
-# TODO: Move this to another module
-class ConfigManagement:
+class ConfigurationManager:
     def __init__(self, output_resolution, pack_zip_val, pack_mcpack_val):
         self.output_resolution = output_resolution
         self.pack_zip_val = pack_zip_val
@@ -85,7 +84,7 @@ class ConfigManagement:
         self.stored_config.update({"Convert_To_Mcpack": self.pack_mcpack_val.get()})
         writeconfig()
 
-class MkJsonPackDetailsFile:
+class PackManifestGenerator:
     pack_description = "This SkyOverlay Was Made By Using §cAkqir's §f(§bMC §fSky Builder) Software..."
     pack_name = lambda self: image_details[2] + " (Sky Overlay)"
     mcpack_file = lambda self: self.pack_name() + ".mcpack"
@@ -132,7 +131,7 @@ class MkJsonPackDetailsFile:
         dst = path.join(tempdir, pack_folder, pack_icon_name)
         copy(src, dst)
 
-class PackingPack(MkJsonPackDetailsFile):
+class ResourcePackBuilder(PackManifestGenerator):
     def __init__(self):
         super().__init__()
         self.old_names = ["Back.png", "Left.png", "Front.png", "Right.png", "Top.png", "Bottom.png"]
