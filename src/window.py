@@ -1,27 +1,33 @@
-from config import *
 import customtkinter as ctk
-from customtkinter import StringVar
-from tkinter import filedialog, TclError
-from create import CubeMapImageProcessor, ResourcePackBuilder
-from worker import GetImageDetails
-from settings import SkySettingsWindow, Thread, resetto, BooleanVar
+from customtkinter import StringVar, CTkImage
+from tkinter import TclError, filedialog
+from PIL import Image, ImageDraw
+
+from .config import *
+from .worker import GetImageDetails
+from .create import CubeMapImageProcessor, ResourcePackBuilder
+from .settings import SkySettingsWindow, Thread, resetto, BooleanVar
 
 class SkyBuilderActions:
   #? Functions to be called by the button
-  def ask_image_folder(self, Imageprev, Imageinput):
-    current_dir = configs['Output_Folder']
-    the_imagefolder_path = filedialog.askopenfilename( initialdir = current_dir, title = "Select Image File",
-                             filetypes = (("Image Files","*.jpg *.png *.jpeg"),("Image Files","*.jpg *.png *.jpeg")))
+  go_output_folder = lambda: open_folder(configs['settings']['output_folder'])
+
+  def ask_image_folder(self, img_input, img_prev):
+    current_dir = configs['settings']['output_folder']
+    the_imagefolder_path = filedialog.askopenfilename(initialdir=current_dir, title="Select Image File", filetypes=[("Image Files", "*.jpg *.png *.jpeg")])
     if the_imagefolder_path:
       image_details.clear()
-      GetImageDetails(the_imagefolder_path).getimagename()
-      for index in range(0, len(the_imagefolder_path), 1000):
-        Imageinput.configure(text="Image Folder : "+the_imagefolder_path[index:index+45]+"...")
-        with Image.open(the_imagefolder_path).resize((412,195)) as intputimg:
-          chosen_img = ImageTk.PhotoImage(intputimg)
-          Imageprev.configure(image=chosen_img, height= 195, width= 412)
+      GetImageDetails(the_imagefolder_path).get_image_name()
+      change_path_label(img_input, the_imagefolder_path, 32)
+      with Image.open(the_imagefolder_path) as input_img:
+        rgba_img = input_img.convert("RGBA")
+        mask = Image.new("L", rgba_img.size, 0)
+        draw = ImageDraw.Draw(mask)
+        draw.rounded_rectangle([(0, 0), rgba_img.size], radius=82, fill=255)
+        rgba_img.putalpha(mask)
+        img_prev.configure(image=CTkImage(dark_image=rgba_img, light_image=rgba_img, size=(326, 166)), height= 165, width= 412)
 
-  def launch_create_sky(createSKY):
+  def launch_create_sky(create_btn):
     pack_name = lambda: image_details.append(user_pack_name)
 
     def on_closing():
@@ -33,111 +39,96 @@ class SkyBuilderActions:
       percentage = StringVar()
       progresswindow = ctk.CTkToplevel()
       progresswindow.geometry('420x110')
-      progresswindow.minsize(420, 110)
+      progresswindow.minsize(424, 110)
       progresswindow.title("Building Sky")
       progresswindow.resizable(False, False)
       try:
           progresswindow.iconbitmap(f'{title_icon_path}conversion.ico')
       except Exception:
           pass
-      progresswindow.configure(fg_color='#283149')
-      createSKY.configure(command=progresswindow.focus_set)
-      create_process = ctk.CTkProgressBar(progresswindow, width=380, height=14, fg_color="#303b58", progress_color=ab)
+      create_btn.configure(command=progresswindow.focus_set)
+      create_process = ctk.CTkProgressBar(progresswindow, width=380, height=14)
       create_process.set(0)
-      ctk.CTkLabel(progresswindow, fg_color='transparent', textvariable=percentage, text_color=f, font=font_details[2]).place(x=420/2-20, y=65)
+      ctk.CTkLabel(progresswindow, textvariable=percentage, font=font_details[2]).place(x=420/2-20, y=65)
       create_process.place(x=20, y=25)
       progresswindow.protocol("WM_DELETE_WINDOW", on_closing)
       processcubeimg = CubeMapImageProcessor(progresswindow, create_process, percentage)
-      Thread(target=processcubeimg.getcreatesky).start()
-      Thread(target=processcubeimg.loadingtitle).start()
+      Thread(target=processcubeimg.get_create_sky).start()
+      Thread(target=processcubeimg.loading_title).start()
       progresswindow.wait_window()
-      createSKY.configure(command=lambda: SkyBuilderActions.launch_create_sky(createSKY))
-    except IndexError: processcubeimg.noimagehandler()
+      create_btn.configure(command=lambda: SkyBuilderActions.launch_create_sky(create_btn))
+    except IndexError: processcubeimg.no_image_handler()
     except (TclError, Exception): pass
-
-  def goto_output_folder():
-    import platform
-    import subprocess
-    outpath = str(configs['Output_Folder'])
-    system = platform.system()
-    try:
-      if system == "Windows":
-        from os import startfile
-        startfile(outpath)
-      elif system == "Darwin":
-        subprocess.Popen(['open', outpath])
-      else:
-        subprocess.Popen(['xdg-open', outpath])
-    except Exception as e:
-      print(f"Could not open folder: {e}")
-
-
 
 class SkyBuilderWindow(ctk.CTk):
     def __init__(self):
         super().__init__()
         ctk.set_appearance_mode("Dark")
-        self.geometry('628x318')
+        self.geometry('682x298')
+        self.minsize(682, 298)
         self.title("MC Sky Builder")
-        self.configure(fg_color="#283149")
-        try:
-            self.iconbitmap(f'{title_icon_path}app.ico')
-        except Exception:
-            pass
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_columnconfigure(2, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        try: self.iconbitmap(f'{title_icon_path}app.ico')
+        except Exception: pass
         self.resizable(False, False)
 
-        # Widget Containers
-        primary_container = ctk.CTkFrame( self, height= 295, width= 342, fg_color="transparent")
-        primary_container.pack(side="left", padx=6, pady=6, fill="both", expand=True)
+        main_slider_container = ctk.CTkFrame(self)
+        image_input = ctk.CTkLabel(self, border_width=2, border_color="#709775", text="Image path will go here...", height=32, padx=6, pady=0, anchor="w", font=font_details[1])
+        image_preview = ctk.CTkLabel(self, border_width=1, border_color="#2b3a2c", fg_color="#18271a", text="", padx=0, pady=0, compound="center", height=195, width=336)
+        image_preview.grid(row=0, column=0, ipadx=0, padx=14, pady=(14, 12), columnspan=3, sticky="wnse")
+        main_slider_container.grid(row=0, column=6, padx=4, sticky="ew")
+        image_input.grid(row=1, column=0, ipadx=6, padx=(16, 0), pady=(0, 4), columnspan=2, sticky="we")
+        main_slider_container.grid(row=0, column=6, ipadx=8, ipady=8, rowspan=3, padx=(0, 16), pady=(14, 16), sticky="ewn")
 
-        # Labels/Frames of the path & location with modern CustomTkinter card styling
-        input_wrapper = ctk.CTkFrame( primary_container, fg_color="transparent", corner_radius=8 )
-        main_buttons_container=ctk.CTkFrame( input_wrapper, fg_color="transparent", corner_radius=8 )
-        main_slider_container=ctk.CTkFrame( primary_container, fg_color="transparent", corner_radius=8 )
-        image_input = ctk.CTkLabel( input_wrapper, text="Press open button for input image path!!", corner_radius=8, height=34, width= 248, fg_color=b, text_color=f, font=font_details[1] )
-        image_preview = ctk.CTkLabel(primary_container, text="Preview", corner_radius=8, height= 195, width= 336, fg_color=b2)
-        image_preview.grid(row=0, column=0, padx=12, pady=12)
-        input_wrapper.grid(row=1, column=0, sticky="n")
-        main_slider_container.grid(row=0, column=6, rowspan=6)
-        main_buttons_container.grid(row=1, column=0, columnspan=4, pady=8)
-        image_input.grid(row=0, column=0, ipadx=4, padx=4)
-
-        # Place the main buttons with even spacing and sleek modern styling
         btn_font = font_details[2]
-        ctk.CTkButton( input_wrapper, text="OPEN", font=btn_font, fg_color=ab, text_color=f, hover_color="#006b73", corner_radius=6, width=58, height=32,
-                       command=lambda: SkyBuilderActions.ask_image_folder(self, Imageprev, Imageinput) ).grid(row=0, column=1, ipadx=6, padx=4)
-        ctk.CTkButton( main_buttons_container, text="FOLDER", font=btn_font, fg_color=ab, text_color=f, hover_color="#006b73", corner_radius=6, width=68, height=32,
-                       command = SkyBuilderActions.goto_output_folder ).grid(row=1, column=1, ipadx=18, padx=4)
-        createSKY = ctk.CTkButton( main_buttons_container, text="CREATE", font=btn_font, fg_color=ab, text_color=f, hover_color="#006b73", corner_radius=6, width=68, height=32,
-                                   command=lambda: SkyBuilderActions.launch_create_sky(createSKY))
-        showSettings = ctk.CTkButton( main_buttons_container, text="SETTINGS", font=btn_font, fg_color=ab, text_color=f, hover_color="#006b73", corner_radius=6, width=68, height=32 )
-        showSettings.configure(command = lambda: SkySettingsWindow(showSettings))
-        createSKY.grid(row=1, column=2, ipadx=18, padx=4)
-        showSettings.grid(row=1, column=3, ipadx=18, padx=4)
+        ctk.CTkButton(self, text="OPEN", font=btn_font, height=32, command=lambda: SkyBuilderActions.ask_image_folder(self, image_input, image_preview) ).grid(row=1, column=2, ipadx=6, padx=(6, 16), sticky="nwe")
+        ctk.CTkButton(self, text="FOLDER", font=btn_font, height=32, command=SkyBuilderActions.go_output_folder).grid(row=2, column=0, ipadx=18, padx=(16, 2), pady=(4, 16), sticky="nwe")
+        create_btn = ctk.CTkButton(self, text="CREATE", font=btn_font, height=32, command=lambda: SkyBuilderActions.launch_create_sky(create_btn))
+        settings_btn = ctk.CTkButton(self, text="SETTINGS", font=btn_font, height=32, command=lambda: SkySettingsWindow(settings_btn))
+        create_btn.grid(row=2, column=1, ipadx=18, padx=2, pady=(4, 16), sticky="nwe")
+        settings_btn.grid(row=2, column=2, ipadx=18, padx=(2, 16), pady=(4, 16), sticky="nwe")
 
-        output_resolution_section = ctk.CTkFrame( main_slider_container, fg_color="transparent", corner_radius=8 )
-        ctk.CTkLabel( main_slider_container, text="Resolution:", font=font_details[1]).grid(row=0, column=0, sticky="wn")
-        custom_resolution = ctk.CTkEntry( output_resolution_section, width=34, height=26, corner_radius=12, border_width=0, fg_color=b)
-        output_resolution = ctk.CTkSlider( output_resolution_section, to=3, from_=0, width=208, fg_color=b, progress_color=ab, button_color=ab, button_hover_color="#006b73", number_of_steps=3, height=16 )
-        output_resolution.grid(row=1, column=2, padx=6, sticky="ee")
-        custom_resolution.grid(row=1, column=0, padx=0, sticky="wn")
-        output_resolution_section.grid(row=1, column=0, padx=0)
+        sliders_values = []
+        entries_values = []
 
-        curvature_section = ctk.CTkFrame( main_slider_container, fg_color="transparent", corner_radius=8 )
-        ctk.CTkLabel( main_slider_container, text="Curvature:", font=font_details[1]).grid(row=2, column=0, sticky="wn")
-        custom_curvature = ctk.CTkEntry( curvature_section, width=34, height=26, corner_radius=12, border_width=0, fg_color=b)
-        output_curvature = ctk.CTkSlider( curvature_section, to=400, from_=200, width=208, fg_color=b, progress_color=ab, button_color=ab, button_hover_color="#006b73", height=16 )
-        output_curvature.grid(row=1, column=2, padx=6, sticky="ee")
-        custom_curvature.grid(row=1, column=0, padx=0, sticky="en")
-        curvature_section.grid(row=3, column=0, padx=0)
+        sliders_config = [
+            ("Resolution:", 0, 1, 3, 0, "e", 3),
+            ("Curvature:", 2, 3, 3, 0.1, "e", None),
+            ("Edge Blend:", 4, 5, 100, 50, "e", None),
+            ("Saturation:", 6, 7, 100, 50, "e", None),
+        ]
 
-        edge_blend_section = ctk.CTkFrame( main_slider_container, fg_color="transparent", corner_radius=8 )
-        ctk.CTkLabel( main_slider_container, text="Edge Blend:", font=font_details[1]).grid(row=4, column=0, sticky="wn")
-        custom_edge_blend = ctk.CTkEntry( edge_blend_section, width=34, height=26, corner_radius=12, border_width=0, fg_color=b)
-        edge_blend = ctk.CTkSlider( edge_blend_section, to=100, from_=50, width=208, fg_color=b, progress_color=ab, button_color=ab, button_hover_color="#006b73", height=16 )
-        edge_blend.grid(row=1, column=2, padx=6, sticky="ee")
-        custom_edge_blend.grid(row=1, column=0, padx=0, sticky="en")
-        edge_blend_section.grid(row=5, column=0, padx=0)
+        for index, (text, lbl_row, frm_row, to_val, from_val, entry_sticky, steps) in enumerate(sliders_config):
+            ctk.CTkLabel(main_slider_container, text=text, font=font_details[1]).grid(row=lbl_row, column=0, sticky="wn", pady=(8, 0), padx=(8, 0))
 
+            section = ctk.CTkFrame(main_slider_container, fg_color="transparent")
+            section.grid(row=frm_row, column=0, padx=(16, 0))
 
+            entry = ctk.CTkEntry(section, width=54, height=26, font=font_details[1])
+            entry.grid(row=1, column=0, padx=0, sticky=entry_sticky)
+            entries_values.append(entry)
+
+            def make_command(e=entry, i=index, s_steps=steps):
+                return lambda val: (
+                    e.delete(0, "end"),
+                    e.insert(0, str(default_resolutions[int(val)] if i == 0 else (int(val) if s_steps else round(val, 1))))
+                )
+
+            slider_kwargs = dict(
+                master=section, to=to_val, from_=from_val, width=188, height=16,
+                command=make_command()
+            )
+            if steps: slider_kwargs["number_of_steps"] = steps
+
+            slider = ctk.CTkSlider(**slider_kwargs)
+            slider.grid(row=1, column=1, padx=6, sticky="e")
+            sliders_values.append(slider)
+
+            initial_val = int(slider.get())
+            display_val = default_resolutions[initial_val] if index == 0 else initial_val
+            entry.insert(0, str(display_val))
         self.mainloop()

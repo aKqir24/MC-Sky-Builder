@@ -1,16 +1,19 @@
 """
 
-    This Code Was Made By People From Stackoverflow 
+    This Code Was Made By People From Stackoverflow
     I Am To Lazy To Make These Kinds Of Hard Code
     Since I'm Just A Beginer I Don't Know Many Maths
 
 """
 
+
+from .config import *
+from .worker import ResourcePackBuilder, messagebox
+
 import customtkinter as ctk
-from config import *
 from PIL import Image
 from numpy import concatenate, array
-from worker import ResourcePackBuilder, messagebox
+from time import sleep
 from tkinter import TclError
 
 class CubeMapImageProcessor:
@@ -21,7 +24,7 @@ class CubeMapImageProcessor:
 
     def no_image_handler(self):
         from convert import SkyImageConverter
-        return SkyImageConverter.getimageError(self)
+        return SkyImageConverter.getimageError(self.progress_window)
 
     noimagehandler = no_image_handler
     getcreatesky = lambda self: self.get_create_sky()
@@ -42,10 +45,10 @@ class CubeMapImageProcessor:
             pass
 
     def merge_sky_edges(self, correct_position, blend_width):
-        """Blends the edges of Top, Front, and Bottom images into a smooth seam."""
-        top = Image.open(tempdir + 'Top' + ext).rotate(-180)
-        front = Image.open(tempdir + 'Front' + ext)
-        bottom = Image.open(tempdir + 'Bottom' + ext).rotate(180)
+        """Blends the edges of Top, Front, and Bottom images into a smooth seam using vectorized NumPy operations."""
+        top = Image.open(tempdir + 'Top' + out_extension).rotate(-180)
+        front = Image.open(tempdir + 'Front' + out_extension)
+        bottom = Image.open(tempdir + 'Bottom' + out_extension).rotate(180)
 
         combined_height = top.height * 3
         mrg = Image.new("RGBA", (top.width, combined_height))
@@ -56,22 +59,28 @@ class CubeMapImageProcessor:
         left = mrg.crop((0, 0, top.width // 2, combined_height))
         right = mrg.crop((top.width // 2, 0, top.width, combined_height))
 
-        combined = Image.fromarray(concatenate((array(left), array(right)), axis=1))
+        left_arr = array(left)
+        right_arr = array(right)
+        combined_arr = concatenate((left_arr, right_arr), axis=1)
 
-        for i in range(blend_width):
-            alpha = i / blend_width
-            for y in range(combined_height):
-                x1 = clip(left.width - blend_width + i, 0, left.width - 1)
-                x2 = clip(blend_width - i, 0, right.width - 1)
+        if blend_width > 0:
+            import numpy as np
+            alpha_bc = np.linspace(0.0, 1.0, blend_width, endpoint=True)[None, :, None]
 
-                p1 = left.getpixel((x1, y))
-                p2 = right.getpixel((x2, y))
+            x1_indices = np.clip(np.arange(left.width - blend_width, left.width), 0, left.width - 1)
+            x2_indices = np.clip(np.arange(blend_width - 1, -1, -1), 0, right.width - 1)
 
-                blended_pixel = tuple(int((1 - alpha) * a + alpha * b) for a, b in zip(p1, p2))
-                px = top.width // 2 - blend_width + i + correct_position
-                combined.putpixel((px, y), blended_pixel)
+            p1 = left_arr[:, x1_indices, :]
+            p2 = right_arr[:, x2_indices, :]
 
-        return combined
+            blended = ((1.0 - alpha_bc) * p1 + alpha_bc * p2).astype('uint8')
+
+            dest_start = top.width // 2 - blend_width + correct_position
+            dest_end = dest_start + blend_width
+
+            combined_arr[:, dest_start:dest_end, :] = blended
+
+        return Image.fromarray(combined_arr)
 
     def merge_java_sky(self):
         """Creates a Java-style sky layout (3x2 grid)."""
@@ -92,8 +101,7 @@ class CubeMapImageProcessor:
         """Main method to handle full sky conversion, blending, cropping, and packing."""
 
         def crop_merged_image(old_names, merged_path):
-            """Crop blended sky into top, front, bottom and save them."""
-            image = Image.open(merged_path)
+            """Crop blended sky into top, front, bottom and save them securely."""
             coords = [
                 (0, 0, img_res, img_res),
                 (0, img_res, img_res, img_res * 2),
@@ -101,14 +109,20 @@ class CubeMapImageProcessor:
             ]
             name_indices = [4, 2, 5]
 
-            for i, box in enumerate(coords):
-                path = tempdir + old_names[name_indices[i]]
-                rm(path)
-                cropped = image.crop(box)
-                if (i == 0 or i == 2) and export_config[3] is True:
-                    cropped = cropped.rotate(180)
-                cropped.save(path)
-            rm(merged_path)
+            with Image.open(merged_path) as image:
+                for i, (box, idx) in enumerate(zip(coords, name_indices)):
+                    path = tempdir + old_names[idx]
+                    if path.exists if hasattr(path, 'exists') else __import__('os').path.exists(path):
+                        try:
+                            rm(path)
+                        except OSError:
+                            pass
+                    cropped = image.crop(box)
+                    if (i == 0 or i == 2) and configs['output'].get('rotate_top_bottom', True):
+                        cropped = cropped.rotate(180)
+                    cropped.save(path)
+            if __import__('os').path.exists(merged_path):
+                rm(merged_path)
 
         try:
             export_config = readconfig()
@@ -131,7 +145,7 @@ class CubeMapImageProcessor:
             ]
 
             cube_size = width / 4
-            img_res, out_path = export_config[0], export_config[1]
+            img_res = configs['output']['resolution']
             save_merged = tempdir + 'combined.png'
 
             for row in range(3):

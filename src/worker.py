@@ -1,14 +1,15 @@
-""" 
+"""
     Worker works around with Files, and Directory
 
  - setting the configuration file, ui, and directory
  - creating or preparing the temporary files needed
  - managing the filenames, extension and other details
  - zipping the complete output of create
- 
+
 """
 
-from config import * 
+from .config import *
+
 from shutil import copytree, copy, move, rmtree, make_archive
 from tkinter import messagebox
 from os import path, mkdir
@@ -31,7 +32,7 @@ class GetImageDetails:
         return filename
 
     def get_img_ext(self):
-        # Append image path to details
+        # Append image path to details list
         image_details.append(self.imgpath)
         # Open image and get extension
         img_format = Image.open(self.imgpath).format
@@ -63,7 +64,7 @@ class ConfigurationManager:
         self.scale_recent_resolution = None
 
     def userpath(self, folder):
-        self.stored_config.update({"Output_Folder": folder})
+        self.stored_config["settings"].update({"output_folder": folder})
 
     def output_res(self, resolution):
         scale_res = self.output_resolution.get()
@@ -76,12 +77,14 @@ class ConfigurationManager:
         else:
             chosen_resolution = self.custom_recent_resolution if self.custom_recent_resolution else supported_resolutions.get(resolution, resolution)
         self.scale_recent_resolution = supported_resolutions.get(scale_res, scale_res)
-        self.stored_config.update({"Image_Size": chosen_resolution})
+        self.stored_config["output"].update({"resolution": chosen_resolution})
 
     def write_settings_config(self):
         self.output_res(self.output_resolution.get())
-        self.stored_config.update({"Convert_To_Zip": self.pack_zip_val.get()})
-        self.stored_config.update({"Convert_To_Mcpack": self.pack_mcpack_val.get()})
+        self.stored_config["settings"].update({
+            "export_zip": self.pack_zip_val.get(),
+            "export_mcpack": self.pack_mcpack_val.get()
+        })
         writeconfig()
 
 class PackManifestGenerator:
@@ -139,7 +142,7 @@ class ResourcePackBuilder(PackManifestGenerator):
 
     def move_to_out(self, pack_filename):
         finished_path = path.join(tempdir, pack_filename)
-        output_path = path.join(configs['Output_Folder'].replace("/", "\\"), pack_filename)
+        output_path = path.join(configs['settings']['output_folder'].replace("/", "\\"), pack_filename)
         make_archive(output_path, 'zip', path.dirname(finished_path))
         if pack_filename.endswith(".zip"):
             move(output_path + ".zip", output_path.replace(".zip", ""))
@@ -156,7 +159,7 @@ class ResourcePackBuilder(PackManifestGenerator):
         return self
 
     def zip_mcpack_or_both(self, mergejavasky):
-        if configs.get('Convert_To_Zip'):
+        if configs['settings'].get('export_zip'):
             path_zip = path.join(self.zippack_file(), "assets", "minecraft", "mcpatcher", "sky", "world0")
             super().make_pack_meta()
             self.make_pack_icon(self.old_names[3], self.zippack_file(), "pack.png")
@@ -168,7 +171,7 @@ class ResourcePackBuilder(PackManifestGenerator):
                          path.join(tempdir, path_zip, sky_properties))
             self.move_to_out(self.zippack_file())
 
-        if configs.get('Convert_To_Mcpack'): 
+        if configs['settings'].get('export_mcpack'):
             path_mcpack = path.join(self.mcpack_file(), "textures", "environment", "overworld_cubemap")
             super().make_manifest()
             self.make_pack_icon(self.old_names[3], self.mcpack_file(), "pack_icon.png")
@@ -178,8 +181,8 @@ class ResourcePackBuilder(PackManifestGenerator):
                 copy(path.join(tempdir, old_name), path.join(tempdir, path_mcpack, new_name))
             self.move_to_out(self.mcpack_file())
 
-        if not configs.get('Convert_To_Zip') and not configs.get('Convert_To_Mcpack'):
-            output_folder = path.join(configs['Output_Folder'], "MC-Sky-Builder", strftime("(%b-%d-%Y) %H-%M-%S"))
+        if not configs['settings'].get('export_zip') and not configs['settings'].get('export_mcpack'):
+            output_folder = path.join(configs['settings']['output_folder'], "MC-Sky-Builder", strftime("(%b-%d-%Y) %H-%M-%S"))
             if path.exists(output_folder):
                 rmtree(output_folder)
             copytree(tempdir, output_folder)
