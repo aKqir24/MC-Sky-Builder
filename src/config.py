@@ -61,8 +61,11 @@ configs = {
 }
 
 # interface values
+PACKAGE_DIR = Path(__file__).resolve().parent
+RESOURCE_DIR = PACKAGE_DIR / "resource"
+
 default_resolutions = [256, 512, 1024, 2048]
-noto_font = 'resource/noto_sans.ttf'
+noto_font = str(RESOURCE_DIR / "noto_sans.ttf")
 try: noto_font_name = ImageFont.truetype(noto_font, 9).getname()[1]
 except Exception: noto_font_name = "sans-serif"
 
@@ -73,7 +76,7 @@ font_details = [
     (noto_font_name, 13, 'normal'),
     (noto_font_name, 13, 'bold')
 ]
-title_icon_path = 'resource/title'
+title_icon_path = str(RESOURCE_DIR / "title") + "/"
 
 # functions used globally
 def change_path_label(label, input_path=None, length=55):

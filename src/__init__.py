@@ -1,1 +1,2 @@
-from . import resource
+# Package initialization
+

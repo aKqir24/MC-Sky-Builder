@@ -65,9 +65,9 @@ class SkySettingsWindow(ctk.CTkToplevel):
 
     # Clean modern buttons with uniform aesthetic and even spacing
     btn_font = font_details[2]
-    about_icon = ctk.CTkImage(dark_image=Image.open("resource/actions/about.png"), size=(28, 28))
-    close_icon = ctk.CTkImage(dark_image=Image.open("resource/actions/close.png"), size=(28, 28))
-    apply_icon = ctk.CTkImage(dark_image=Image.open("resource/actions/apply.png"), size=(28, 28))
+    about_icon = ctk.CTkImage(dark_image=Image.open(str(RESOURCE_DIR / "actions" / "about.png")), size=(28, 28))
+    close_icon = ctk.CTkImage(dark_image=Image.open(str(RESOURCE_DIR / "actions" / "close.png")), size=(28, 28))
+    apply_icon = ctk.CTkImage(dark_image=Image.open(str(RESOURCE_DIR / "actions" / "apply.png")), size=(28, 28))
     ctk.CTkButton(self, command=settingbuttons.ask_output_folder, text="CHANGE", font=btn_font, corner_radius=6, width=1, height=32
                  ).grid(row=1, column=1, ipadx=8, ipady=1, padx=(8, 16), columnspan=1, sticky="we")
     ctk.CTkButton(widget_buttons_wrapper_left, command=settingbuttons.aboutprogram, image=about_icon, text="",

@@ -1,3 +1,4 @@
+
 <div align="center">
 <img height="200" alt="app" src="https://github.com/user-attachments/assets/aa5a7b84-d61c-4de9-b5a6-19a6d605d045"/>
 <h1>MC-Sky-Builder</h1>
@@ -17,7 +18,7 @@
     <li> Seperated Java, Bedrock, and Both Sky Output </li>
 </ol>
 
-<div align="center"><img height="1480" src="https://github.com/user-attachments/assets/76a35f6f-4f3d-43c9-b303-d3cb28388ac6"/></div>
+<div align="center"><img width="682" height="298" alt="screenshot" src="https://github.com/user-attachments/assets/a6d36be8-9ef8-4cb2-85d9-023655b177a3" /></div>
 
 ## Setup
 The program was only compiled in windows 10 and may not work in some systems, just simply download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and double click the `MC_Sky_Builder.exe` to start the program.
