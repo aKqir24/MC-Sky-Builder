@@ -6,3 +6,4 @@ sixlabors.lic
 src/generator/
 generator/obj/
 generator/bin/
+__pycache__/
