@@ -1,10 +1,12 @@
+import io
+from System.IO import MemoryStream
 import customtkinter as ctk
 from customtkinter import StringVar, CTkImage
 from tkinter import TclError, filedialog
-from PIL import Image
 
 from .config import *
 from .worker import path, GetImageDetails
+from PIL import Image
 from .create import SkyImage, ResourcePackBuilder, Process
 from .settings import SkySettingsWindow, Thread, resetto, BooleanVar
 
@@ -15,22 +17,38 @@ class SkyBuilderActions:
   def ask_image_folder(self, img_input, img_prev):
     current_dir = configs['settings']['output_folder']
     the_imagefolder_path = filedialog.askopenfilename(initialdir=current_dir, title="Select Image File", filetypes=[("Image Files", "*.jpg *.png *.jpeg")])
+
     if the_imagefolder_path:
-      image_details.clear()
-      image_details.append(the_imagefolder_path)
-      GetImageDetails(the_imagefolder_path).get_image_name()
-      change_path_label(img_input, the_imagefolder_path, 32)
-      img_prev.configure(text="Loading Preview...", bg_color="transparent", font=font_details[4])
-      img_prev.update_idletasks()
+        image_details.clear()
+        image_details.append(the_imagefolder_path)
+        GetImageDetails(the_imagefolder_path).get_image_name()
+        change_path_label(img_input, the_imagefolder_path, 32)
 
-      preview_out = path.join(tempdir, "preview.png")
-      if not path.exists(tempdir): os.makedirs(tempdir, exist_ok=True)
+        # Show loading text and force UI render
+        img_prev.configure(text="Loading Preview...", font=font_details[4], image=None)
+        img_prev.update_idletasks()
 
-      processor = Process(the_imagefolder_path)
-      processor.GenerateRoundedPreview(the_imagefolder_path, preview_out, 16)
+        # Create a C# MemoryStream to catch the bytes from C#
+        output_stream = MemoryStream()
 
-      with Image.open(preview_out) as rgba_img:
-        img_prev.configure(text="", image=CTkImage(dark_image=rgba_img, light_image=rgba_img, size=(326, 166)), height= 165, width= 412)
+        # Call the C# method, passing the stream directly
+        processor = Process(the_imagefolder_path)
+        processor.GenerateRoundedPreviewFromStream(the_imagefolder_path, output_stream, 82)
+
+        # Extract bytes from the C# MemoryStream into Python
+        output_stream.Position = 0
+        buffer = output_stream.ToArray()
+        output_stream.Dispose()
+
+        # Load bytes into memory for CustomTkinter without calling Image.open(filepath)
+        with io.BytesIO(buffer) as stream_bytes:
+            with Image.open(stream_bytes) as rgba_img:
+                img_prev.configure(
+                    image=CTkImage(dark_image=rgba_img, light_image=rgba_img, size=(326, 166)),
+                    height=165,
+                    width=412,
+                    text=""
+                )
 
   def launch_create_sky(create_btn):
     pack_name = lambda: image_details.append(user_pack_name)

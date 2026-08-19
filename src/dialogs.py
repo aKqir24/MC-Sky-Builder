@@ -1,8 +1,8 @@
 import os
 import customtkinter as ctk
-from tkinter import messagebox
+import ctkmessagebox2 as messagebox
 
-def getimageError(progresswindow):
-    progresswindow.destroy()
+def get_image_error(progress_window):
     errormessage = "Please open an image file!!"
-    messagebox.showinfo(title="No Image Found!!", message=errormessage)
+    messagebox.showinfo(progress_window, title="No Image Found!!", message=errormessage)
+    progress_window.destroy()

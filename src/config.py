@@ -7,7 +7,7 @@ import subprocess
 from json import dump, load
 from pathlib import Path
 from tempfile import gettempdir
-from PIL import ImageFont
+from fontTools.ttLib import TTFont
 
 # 1. Resolve Platform-Specific Handlers Once at Startup
 def _init_platform():
@@ -67,7 +67,7 @@ RESOURCE_DIR = PACKAGE_DIR / "resource"
 
 default_resolutions = [256, 512, 1024, 2048]
 noto_font = str(RESOURCE_DIR / "noto_sans.ttf")
-try: noto_font_name = ImageFont.truetype(noto_font, 9).getname()[1]
+try: noto_font_name = TTFont(noto_font)['name'].getDebugName(1)
 except Exception: noto_font_name = "sans-serif"
 
 font_details = [

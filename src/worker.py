@@ -11,7 +11,7 @@
 from .config import *
 
 from shutil import copytree, copy, move, rmtree, make_archive
-from tkinter import messagebox
+import ctkmessagebox2 as messagebox
 from os import path, mkdir
 from json import dump
 from SkyGenerator import Process
