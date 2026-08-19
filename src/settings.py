@@ -4,6 +4,7 @@ from .worker import EnvironmentInitializer as resetto, ConfigurationManager as C
 
 from CTkToolTip import *
 from tkinter import filedialog
+from PIL import Image
 from threading import Thread
 import customtkinter as ctk
 from customtkinter import BooleanVar, StringVar
