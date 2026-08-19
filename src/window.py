@@ -1,11 +1,11 @@
 import customtkinter as ctk
 from customtkinter import StringVar, CTkImage
 from tkinter import TclError, filedialog
-from PIL import Image, ImageDraw
+from PIL import Image
 
 from .config import *
-from .worker import GetImageDetails
-from .create import CubeMapImageProcessor, ResourcePackBuilder
+from .worker import path, GetImageDetails
+from .create import SkyImage, ResourcePackBuilder, Process
 from .settings import SkySettingsWindow, Thread, resetto, BooleanVar
 
 class SkyBuilderActions:
@@ -17,15 +17,20 @@ class SkyBuilderActions:
     the_imagefolder_path = filedialog.askopenfilename(initialdir=current_dir, title="Select Image File", filetypes=[("Image Files", "*.jpg *.png *.jpeg")])
     if the_imagefolder_path:
       image_details.clear()
+      image_details.append(the_imagefolder_path)
       GetImageDetails(the_imagefolder_path).get_image_name()
       change_path_label(img_input, the_imagefolder_path, 32)
-      with Image.open(the_imagefolder_path) as input_img:
-        rgba_img = input_img.convert("RGBA")
-        mask = Image.new("L", rgba_img.size, 0)
-        draw = ImageDraw.Draw(mask)
-        draw.rounded_rectangle([(0, 0), rgba_img.size], radius=82, fill=255)
-        rgba_img.putalpha(mask)
-        img_prev.configure(image=CTkImage(dark_image=rgba_img, light_image=rgba_img, size=(326, 166)), height= 165, width= 412)
+      img_prev.configure(text="Loading Preview...", bg_color="transparent", font=font_details[4])
+      img_prev.update_idletasks()
+
+      preview_out = path.join(tempdir, "preview.png")
+      if not path.exists(tempdir): os.makedirs(tempdir, exist_ok=True)
+
+      processor = Process(the_imagefolder_path)
+      processor.GenerateRoundedPreview(the_imagefolder_path, preview_out, 16)
+
+      with Image.open(preview_out) as rgba_img:
+        img_prev.configure(text="", image=CTkImage(dark_image=rgba_img, light_image=rgba_img, size=(326, 166)), height= 165, width= 412)
 
   def launch_create_sky(create_btn):
     pack_name = lambda: image_details.append(user_pack_name)
@@ -52,8 +57,8 @@ class SkyBuilderActions:
       ctk.CTkLabel(progresswindow, textvariable=percentage, font=font_details[2]).place(x=420/2-20, y=65)
       create_process.place(x=20, y=25)
       progresswindow.protocol("WM_DELETE_WINDOW", on_closing)
-      processcubeimg = CubeMapImageProcessor(progresswindow, create_process, percentage)
-      Thread(target=processcubeimg.get_create_sky).start()
+      processcubeimg = SkyImage(progresswindow, create_process, percentage)
+      Thread(target=processcubeimg.create).start()
       Thread(target=processcubeimg.loading_title).start()
       progresswindow.wait_window()
       create_btn.configure(command=lambda: SkyBuilderActions.launch_create_sky(create_btn))

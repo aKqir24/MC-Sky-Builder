@@ -4,303 +4,334 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-class Program
+/*
+
+    This Code Was Made By People From Stackoverflow
+    I Am To Lazy To Make These Kinds Of Hard Code
+    Since I'm Just A Beginer I Don't Know Many Maths.
+
+    Originally it was made in python, I ask AI to
+    convert it to C#, with the Image Sharp library
+    them tweaked some values to make it suite the
+    need of this progra.
+
+*/
+
+namespace SkyGenerator
 {
-    static void Main(string[] args)
+    public class Process
     {
-        Console.WriteLine("Sky Generator Initialized.");
-    }
-}
+        public string inputImage { get; set; }
+        public Image<Rgb24> outputImage { get; set; }
+        public Size inputImageSize { get; private set; }
+        public Size outputImageSize { get; private set; }
 
-class Process
-{
-    public string inputImage { get; set; }
-    public Image<Rgb24> outputImage { get; set; }
-
-    public Size inputImageSize { get; private set; }
-    public Size outputImageSize { get; private set; }
-
-    public Process(string imagePath)
-    {
-        inputImage = imagePath;
-        outputImage = new Image<Rgb24>(Configuration.Default, 1, 1);
-        FillBlack(outputImage);
-    }
-
-    public void InitializeImages()
-    {
-        using Image<Rgb24> imgIn = Image.Load<Rgb24>(inputImage);
-        inputImageSize = imgIn.Size;
-
-        int newHeight = (int)(inputImageSize.Width * 3.0 / 4.0);
-        outputImage = new Image<Rgb24>(Configuration.Default, inputImageSize.Width, newHeight);
-        FillBlack(outputImage);
-        outputImageSize = outputImage.Size;
-    }
-
-    private void FillBlack(Image<Rgb24> img)
-    {
-        img.ProcessPixelRows(accessor =>
+        public Process(string imagePath)
         {
-            for (int y = 0; y < accessor.Height; y++)
+            inputImage = imagePath;
+            outputImage = new Image<Rgb24>(Configuration.Default, 1, 1);
+            FillBlack(outputImage);
+        }
+
+        public void InitializeImages()
+        {
+            using Image<Rgb24> imgIn = Image.Load<Rgb24>(inputImage);
+            inputImageSize = imgIn.Size;
+            outputImage = new Image<Rgb24>(Configuration.Default, inputImageSize.Width, (int)(inputImageSize.Width * 0.75));
+            FillBlack(outputImage);
+            outputImageSize = outputImage.Size;
+        }
+
+        private void FillBlack(Image<Rgb24> img) =>
+            img.ProcessPixelRows(acc => { for (int y = 0; y < acc.Height; y++) acc.GetRowSpan(y).Clear(); });
+
+        public object[] OutputValues(Size inSize, double edgeBlend = 50.0)
+        {
+            double edge = inSize.Width / 4.0;
+            double pv;
+            int correctPosition;
+            int blendWidth = (int)(edge * edgeBlend);
+
+            if (inSize.Width >= 3840 || inSize.Height >= 2160)
             {
-                Span<Rgb24> row = accessor.GetRowSpan(y);
-                row.Fill(new Rgb24(0, 0, 0));
+                pv = 0.010;
+                correctPosition = 6;
             }
-        });
-    }
-
-    public (double pv, int correctPosition, int blendWidth) OutputValues(Size inSize, double edgeBlend = 50.0)
-    {
-        double edge = inSize.Width / 4.0;
-        int blendWidth = (int)(edge * edgeBlend);
-
-        double pv;
-        int correctPosition;
-
-        if (inSize.Width >= 3840 || inSize.Height >= 2160)
-        {
-            pv = 0.010;
-            correctPosition = 6;
-        }
-        else if (inSize.Width >= 2048 || inSize.Height >= 1080)
-        {
-            pv = 0.0225;
-            correctPosition = 4;
-        }
-        else if (inSize.Width >= 1280 || inSize.Height >= 1080)
-        {
-            pv = 0.045;
-            correctPosition = 3;
-        }
-        else
-        {
-            pv = 0.071;
-            correctPosition = 2;
-        }
-
-        return (pv, correctPosition, blendWidth);
-    }
-
-    public double ConvertBack(double pv, double currentPercent)
-    {
-        double edge = inputImageSize.Width / 4.0;
-        const double pi = Math.PI;
-        double curvature = 1.0;
-
-        using Image<Rgb24> imgIn = Image.Load<Rgb24>(inputImage);
-
-        int inWidth = imgIn.Width;
-        int inHeight = imgIn.Height;
-
-        outputImage.ProcessPixelRows(outAccessor =>
-        {
-            for (int i = 0; i < outputImageSize.Width; i++)
+            else if (inSize.Width >= 2048 || inSize.Height >= 1080)
             {
-                int face = (int)(i / edge);
-                int jStart = (face == 2) ? 0 : (int)edge;
-                int jEnd = (face == 2) ? (int)(edge * 3) : (int)(edge * 2);
-
-                for (int j = jStart; j < jEnd; j++)
-                {
-                    int face2;
-                    if (j < edge) face2 = 4;      // top
-                    else if (j >= 2 * edge) face2 = 5; // bottom
-                    else face2 = face;
-
-                    var (x, y, z) = OutImgToXYZ(i, j, face2, edge);
-                    double theta = Math.Atan2(y, x);
-                    double r = Math.Sqrt(x * x + y * y);
-                    double phi = Math.Atan2(z, r);
-
-                    double uf = 2 * edge * (theta + pi) / pi;
-                    double vf = curvature * edge * (pi / 1.869 - phi) / pi;
-
-                    int ui = (int)Math.Floor(uf);
-                    int vi = (int)Math.Floor(vf);
-                    int u2 = ui + 1;
-                    int v2 = vi + 1;
-
-                    double mu = uf - ui;
-                    double nu = vf - vi;
-
-                    int uiMod = (ui % inWidth + inWidth) % inWidth;
-                    int u2Mod = (u2 % inWidth + inWidth) % inWidth;
-                    int viClamped = Math.Clamp(vi, 0, inHeight - 1);
-                    int v2Clamped = Math.Clamp(v2, 0, inHeight - 1);
-
-                    Rgb24 a = imgIn[uiMod, viClamped];
-                    Rgb24 b = imgIn[u2Mod, viClamped];
-                    Rgb24 c = imgIn[uiMod, v2Clamped];
-                    Rgb24 d = imgIn[u2Mod, v2Clamped];
-
-                    double red = a.R * (1 - mu) * (1 - nu) + b.R * mu * (1 - nu) + c.R * (1 - mu) * nu + d.R * mu * nu;
-                    double green = a.G * (1 - mu) * (1 - nu) + b.G * mu * (1 - nu) + c.G * (1 - mu) * nu + d.G * mu * nu;
-                    double blue = a.B * (1 - mu) * (1 - nu) + b.B * mu * (1 - nu) + c.B * (1 - mu) * nu + d.B * mu * nu;
-
-                    Span<Rgb24> outRow = outAccessor.GetRowSpan(j);
-                    outRow[i] = new Rgb24(
-                        (byte)Math.Clamp(Math.Round(red), 0, 255),
-                        (byte)Math.Clamp(Math.Round(green), 0, 255),
-                        (byte)Math.Clamp(Math.Round(blue), 0, 255)
-                    );
-                }
+                pv = 0.0225;
+                correctPosition = 4;
             }
-        });
-
-        return currentPercent;
-    }
-
-    private (double x, double y, double z) OutImgToXYZ(int i, int j, int face, double edge)
-    {
-        double a = 2.0 * i / edge;
-        double b = 2.0 * j / edge;
-
-        return face switch
-        {
-            0 => (-1.0, 1.0 - a, 3.0 - b),
-            1 => (a - 3.0, -1.0, 3.0 - b),
-            2 => (1.0, a - 5.0, 3.0 - b),
-            3 => (7.0 - a, 1.0, 3.0 - b),
-            4 => (b - 1.0, a - 5.0, 1.0),
-            5 => (5.0 - b, a - 5.0, -1.0),
-            _ => (0, 0, 0)
-        };
-    }
-
-    public Image<Rgba32> MergeSkyEdges(int correctPosition, int blendWidth, string tempDir, string outExtension)
-    {
-        using var top = Image.Load<Rgba32>(Path.Combine(tempDir, "Top" + outExtension));
-        top.Mutate(x => x.Rotate(180));
-
-        using var front = Image.Load<Rgba32>(Path.Combine(tempDir, "Front" + outExtension));
-
-        using var bottom = Image.Load<Rgba32>(Path.Combine(tempDir, "Bottom" + outExtension));
-        bottom.Mutate(x => x.Rotate(180));
-
-        int combinedHeight = top.Height * 3;
-        var mrg = new Image<Rgba32>(Configuration.Default, top.Width, combinedHeight);
-
-        mrg.Mutate(x =>
-        {
-            x.DrawImage(top, new Point(0, 0), 1f);
-            x.DrawImage(front, new Point(0, top.Height), 1f);
-            x.DrawImage(bottom, new Point(0, top.Height * 2), 1f);
-        });
-
-        var left = mrg.Clone(x => x.Crop(new Rectangle(0, 0, top.Width / 2, combinedHeight)));
-        var right = mrg.Clone(x => x.Crop(new Rectangle(top.Width / 2, 0, top.Width - (top.Width / 2), combinedHeight)));
-
-        var combinedArr = new Image<Rgba32>(Configuration.Default, top.Width, combinedHeight);
-        combinedArr.Mutate(x =>
-        {
-            x.DrawImage(left, new Point(0, 0), 1f);
-            x.DrawImage(right, new Point(left.Width, 0), 1f);
-        });
-
-        if (blendWidth > 0)
-        {
-            int leftWidth = left.Width;
-            int rightWidth = right.Width;
-
-            combinedArr.ProcessPixelRows(accessor =>
+            else if (inSize.Width >= 1280 || inSize.Height >= 1080)
             {
-                for (int y = 0; y < accessor.Height; y++)
-                {
-                    Span<Rgba32> row = accessor.GetRowSpan(y);
+                pv = 0.045;
+                correctPosition = 3;
+            }
+            else
+            {
+                pv = 0.071;
+                correctPosition = 2;
+            }
 
-                    for (int bw = 0; bw < blendWidth; bw++)
+            return new object[] { pv, correctPosition, blendWidth };
+        }
+
+        public double ConvertBack(double pv, double currentPercent, double curvature = 2.14, Action<double> onProgress = null)
+        {
+            double edge = inputImageSize.Width / 4.0;
+            const double pi = Math.PI;
+
+            using Image<Rgb24> imgIn = Image.Load<Rgb24>(inputImage);
+            int w = imgIn.Width, h = imgIn.Height;
+
+            outputImage.ProcessPixelRows(outAcc =>
+            {
+                for (int i = 0; i < outputImageSize.Width; i++)
+                {
+                    currentPercent += pv;
+                    onProgress?.Invoke(currentPercent);
+
+                    int face = (int)(i / edge);
+                    int jStart = face == 2 ? 0 : (int)edge;
+                    int jEnd = face == 2 ? (int)(edge * 3) : (int)(edge * 2);
+
+                    for (int j = jStart; j < jEnd; j++)
                     {
-                        double alpha = (double)bw / (blendWidth - 1);
-                        int x1 = Math.Clamp(leftWidth - blendWidth + bw, 0, leftWidth - 1);
-                        int x2 = Math.Clamp(blendWidth - 1 - bw, 0, rightWidth - 1);
+                        int face2 = j < edge ? 4 : (j >= 2 * edge ? 5 : face);
+                        var (x, y, z) = OutImgToXYZ(i, j, face2, edge);
 
-                        Rgba32 p1 = left[x1, y];
-                        Rgba32 p2 = right[x2, y];
+                        double theta = Math.Atan2(y, x);
+                        double phi = Math.Atan2(z, Math.Sqrt(x * x + y * y));
 
-                        byte r = (byte)Math.Clamp(Math.Round((1.0 - alpha) * p1.R + alpha * p2.R), 0, 255);
-                        byte g = (byte)Math.Clamp(Math.Round((1.0 - alpha) * p1.G + alpha * p2.G), 0, 255);
-                        byte b = (byte)Math.Clamp(Math.Round((1.0 - alpha) * p1.B + alpha * p2.B), 0, 255);
-                        byte a = (byte)Math.Clamp(Math.Round((1.0 - alpha) * p1.A + alpha * p2.A), 0, 255);
+                        double uf = 2 * edge * (theta + pi) / pi;
+                        double vf = curvature * edge * (pi / 1.869 - phi) / pi;
 
-                        int destX = leftWidth - blendWidth + correctPosition + bw;
-                        if (destX >= 0 && destX < accessor.Width)
-                        {
-                            row[destX] = new Rgba32(r, g, b, a);
-                        }
+                        int ui = (int)Math.Floor(uf), vi = (int)Math.Floor(vf);
+                        double mu = uf - ui, nu = vf - vi;
+
+                        int viClamped = Math.Clamp(vi, 0, h - 1);
+                        int viNextClamped = Math.Clamp(vi + 1, 0, h - 1);
+
+                        int u1 = (ui % w + w) % w;
+                        int u2 = ((ui + 1) % w + w) % w;
+
+                        Rgb24 a = imgIn[u1, viClamped];
+                        Rgb24 b = imgIn[u2, viClamped];
+                        Rgb24 c = imgIn[u1, viNextClamped];
+                        Rgb24 d = imgIn[u2, viNextClamped];
+
+                        outAcc.GetRowSpan(j)[i] = new Rgb24(
+                            (byte)Math.Clamp(Math.Round(a.R * (1 - mu) * (1 - nu) + b.R * mu * (1 - nu) + c.R * (1 - mu) * nu + d.R * mu * nu), 0, 255),
+                            (byte)Math.Clamp(Math.Round(a.G * (1 - mu) * (1 - nu) + b.G * mu * (1 - nu) + c.G * (1 - mu) * nu + d.G * mu * nu), 0, 255),
+                            (byte)Math.Clamp(Math.Round(a.B * (1 - mu) * (1 - nu) + b.B * mu * (1 - nu) + c.B * (1 - mu) * nu + d.B * mu * nu), 0, 255)
+                        );
                     }
                 }
             });
+
+            return currentPercent;
         }
 
-        left.Dispose();
-        right.Dispose();
-        mrg.Dispose();
-
-        return combinedArr;
-    }
-
-    public Image<Rgba32> MergeJavaSky(string tempDir, string[] oldNames, int width, int height)
-    {
-        int[] indices = new int[] { 5, 4, 0, 1, 2, 3 };
-        var images = new Image<Rgba32>[6];
-
-        for (int i = 0; i < 6; i++)
+        private (double x, double y, double z) OutImgToXYZ(int i, int j, int face, double edge)
         {
-            images[i] = Image.Load<Rgba32>(Path.Combine(tempDir, oldNames[indices[i]]));
-        }
-
-        var canvas = new Image<Rgba32>(Configuration.Default, width * 3, height * 2);
-        canvas.Mutate(ctx =>
-        {
-            for (int i = 0; i < 6; i++)
+            double a = 2.0 * i / edge, b = 2.0 * j / edge;
+            return face switch
             {
-                int x = (i < 3 ? i : i - 3) * width;
-                int y = (i < 3 ? 0 : height);
-                ctx.DrawImage(images[i], new Point(x, y), 1f);
-            }
-        });
-
-        foreach (var img in images)
-        {
-            img.Dispose();
+                0 => (-1.0, 1.0 - a, 3.0 - b),
+                1 => (a - 3.0, -1.0, 3.0 - b),
+                2 => (1.0, a - 5.0, 3.0 - b),
+                3 => (7.0 - a, 1.0, 3.0 - b),
+                4 => (b - 1.0, a - 5.0, 1.0),
+                5 => (5.0 - b, a - 5.0, -1.0),
+                _ => (0, 0, 0)
+            };
         }
 
-        return canvas;
-    }
-
-    public void CropMergedImage(string[] oldNames, string mergedPath, int imgRes, string tempDir)
-    {
-        var coords = new Rectangle[]
+        public double ExportFaces(int imgRes, string tempDir, double pv, double currentPercent, Action<double> onProgress = null)
         {
-            new Rectangle(0, 0, imgRes, imgRes),
-            new Rectangle(0, imgRes, imgRes, imgRes),
-            new Rectangle(0, imgRes * 2, imgRes, imgRes)
-        };
-        int[] nameIndices = new int[] { 4, 2, 5 };
+            string[,] nameMap = {
+                { "", "", "Top", "" },
+                { "Front", "Right", "Back", "Left" },
+                { "", "", "Bottom", "" }
+            };
 
-        using (var image = Image.Load<Rgba32>(mergedPath))
+            double cubeSize = outputImageSize.Width / 4.0;
+
+            for (int row = 0; row < 3; row++)
+            {
+                for (int col = 0; col < 4; col++)
+                {
+                    currentPercent += pv;
+                    onProgress?.Invoke(currentPercent);
+
+                    string faceName = nameMap[row, col];
+                    if (!string.IsNullOrEmpty(faceName))
+                    {
+                        int sx = (int)(cubeSize * col);
+                        int sy = (int)(cubeSize * row);
+                        int size = (int)cubeSize;
+
+                        using var cropped = outputImage.Clone(x => x.Crop(new Rectangle(sx, sy, size, size)));
+                        cropped.Mutate(x => x.Resize(imgRes, imgRes));
+
+                        string filePath = tempDir + faceName + ".png";
+                        if (File.Exists(filePath)) try { File.Delete(filePath); } catch (IOException) { }
+                        cropped.Save(filePath);
+                    }
+                }
+            }
+
+            return currentPercent;
+        }
+
+        public Image<Rgba32> MergeSkyEdges(int correctPosition, int blendWidth, string tempDir, string outExtension)
         {
+            using var top = Image.Load<Rgba32>(Path.Combine(tempDir, "Top" + outExtension));
+            top.Mutate(x => x.Rotate(180));
+            using var front = Image.Load<Rgba32>(Path.Combine(tempDir, "Front" + outExtension));
+            using var bottom = Image.Load<Rgba32>(Path.Combine(tempDir, "Bottom" + outExtension));
+            bottom.Mutate(x => x.Rotate(180));
+
+            int h = top.Height, w = top.Width;
+            var mrg = new Image<Rgba32>(Configuration.Default, w, h * 3);
+            mrg.Mutate(x => { x.DrawImage(top, new Point(0, 0), 1f).DrawImage(front, new Point(0, h), 1f).DrawImage(bottom, new Point(0, h * 2), 1f); });
+
+            using var left = mrg.Clone(x => x.Crop(new Rectangle(0, 0, w / 2, h * 3)));
+            using var right = mrg.Clone(x => x.Crop(new Rectangle(w / 2, 0, w / 2, h * 3)));
+
+            var combined = new Image<Rgba32>(Configuration.Default, w, h * 3);
+            combined.Mutate(x => x.DrawImage(left, new Point(0, 0), 1f).DrawImage(right, new Point(left.Width, 0), 1f));
+
+            if (blendWidth > 0)
+            {
+                int leftWidth = left.Width;
+                int rightWidth = right.Width;
+                combined.ProcessPixelRows(acc =>
+                {
+                    for (int y = 0; y < acc.Height; y++)
+                    {
+                        var row = acc.GetRowSpan(y);
+
+                        for (int bw = 0; bw < blendWidth; bw++)
+                        {
+                            double alpha = (double)bw / (blendWidth - 1);
+                            int x1 = Math.Clamp(leftWidth - blendWidth + bw, 0, leftWidth - 1);
+                            int x2 = Math.Clamp(blendWidth - 1 - bw, 0, rightWidth - 1);
+
+                            Rgba32 p1 = left[x1, y];
+                            Rgba32 p2 = right[x2, y];
+
+                            int destX = leftWidth - blendWidth + correctPosition + bw;
+
+                            if ((uint)destX < (uint)acc.Width)
+                            {
+                                row[destX] = new Rgba32(
+                                    (byte)Math.Clamp(Math.Round((1 - alpha) * p1.R + alpha * p2.R), 0, 255),
+                                    (byte)Math.Clamp(Math.Round((1 - alpha) * p1.G + alpha * p2.G), 0, 255),
+                                    (byte)Math.Clamp(Math.Round((1 - alpha) * p1.B + alpha * p2.B), 0, 255),
+                                    (byte)Math.Clamp(Math.Round((1 - alpha) * p1.A + alpha * p2.A), 0, 255)
+                                );
+                            }
+                        }
+                    }
+                });
+            }
+            return combined;
+        }
+
+        public Image<Rgba32> MergeJavaSky(string tempDir, string[] oldNames, int width, int height)
+        {
+            int[] indices = { 5, 4, 0, 1, 2, 3 };
+            var canvas = new Image<Rgba32>(Configuration.Default, width * 3, height * 2);
+            canvas.Mutate(ctx =>
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    using var img = Image.Load<Rgba32>(Path.Combine(tempDir, oldNames[indices[i]]));
+                    ctx.DrawImage(img, new Point((i < 3 ? i : i - 3) * width, i < 3 ? 0 : height), 1f);
+                }
+            });
+            return canvas;
+        }
+
+        public void CropMergedImage(string[] oldNames, string mergedPath, int imgRes, string tempDir, bool rotateTopBottom = true)
+        {
+            using var image = Image.Load<Rgba32>(mergedPath);
+            int[] nameIndices = { 4, 2, 5 };
             for (int i = 0; i < 3; i++)
             {
-                string path = Path.Combine(tempDir, oldNames[nameIndices[i]]);
-                if (File.Exists(path))
-                {
-                    try { File.Delete(path); } catch (IOException) { }
-                }
+                string path = tempDir + oldNames[nameIndices[i]];
+                if (File.Exists(path)) try { File.Delete(path); } catch (IOException) { }
 
-                using var cropped = image.Clone(x => x.Crop(coords[i]));
-                if (i == 0 || i == 2)
+                using var cropped = image.Clone(x => x.Crop(new Rectangle(0, imgRes * i, imgRes, imgRes)));
+                if (i == 2 || (i == 0 && rotateTopBottom))
                 {
                     cropped.Mutate(x => x.Rotate(180));
                 }
                 cropped.Save(path);
             }
+            if (File.Exists(mergedPath)) try { File.Delete(mergedPath); } catch (IOException) { }
         }
 
-        if (File.Exists(mergedPath))
+        public void GenerateRoundedPreview(string inputPath, string outputPath, int radius)
         {
-            try { File.Delete(mergedPath); } catch (IOException) { }
+            using var image = Image.Load<Rgba32>(inputPath);
+
+            int previewWidth = 512;
+            if (image.Width > previewWidth)
+            {
+                int previewHeight = (int)(image.Height * ((double)previewWidth / image.Width));
+                image.Mutate(x => x.Resize(previewWidth, previewHeight));
+                radius = (int)(radius * ((double)previewWidth / image.Width));
+            }
+
+            int width = image.Width, height = image.Height, rSq = radius * radius, rX = width - radius, rY = height - radius;
+
+            for (int y = 0; y < radius && y < height; y++)
+            {
+                int dy = radius - y, dySq = dy * dy;
+                for (int x = 0; x < radius && x < width; x++)
+                {
+                    int dx = radius - x;
+                    if (dx * dx + dySq > rSq) { var p = image[x, y]; image[x, y] = new Rgba32(p.R, p.G, p.B, 0); }
+                }
+                for (int x = Math.Max(0, rX); x < width; x++)
+                {
+                    int dx = x - rX;
+                    if (dx * dx + dySq > rSq) { var p = image[x, y]; image[x, y] = new Rgba32(p.R, p.G, p.B, 0); }
+                }
+            }
+
+            for (int y = Math.Max(0, rY); y < height; y++)
+            {
+                int dy = y - rY, dySq = dy * dy;
+                for (int x = 0; x < radius && x < width; x++)
+                {
+                    int dx = radius - x;
+                    if (dx * dx + dySq > rSq) { var p = image[x, y]; image[x, y] = new Rgba32(p.R, p.G, p.B, 0); }
+                }
+                for (int x = Math.Max(0, rX); x < width; x++)
+                {
+                    int dx = x - rX;
+                    if (dx * dx + dySq > rSq) { var p = image[x, y]; image[x, y] = new Rgba32(p.R, p.G, p.B, 0); }
+                }
+            }
+
+            image.Save(outputPath);
         }
+
+        public void SaveOutputImage(string path)
+        {
+            outputImage.Save(path);
+        }
+
+        public void SaveRgbaImage(Image<Rgba32> img, string path)
+        {
+            img.Save(path);
+            img.Dispose();
+        }
+
+        public static string GetImageFormat(string imagePath) =>
+            Image.Identify(imagePath)?.Metadata.DecodedImageFormat?.Name.ToLower() ?? "unknown";
     }
 }

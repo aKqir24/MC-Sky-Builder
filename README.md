@@ -23,14 +23,26 @@
 ## Setup
 The program was only compiled in windows 10 and may not work in some systems, just simply download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and double click the `MC_Sky_Builder.exe` to start the program.
 
+
+## Licensing
+Recently I replaced the <u>Pillow</u>, with a C# alternative called <u>ImageSharp</u>. The library is free for opensource projects like this, but if you want to make that warning not show during compile, I recomend you to apply for a free license in https://licensing.sixlabors.com/, make a `sixlabors.lic` along with the license ID and put in the root path in this project.
+
 ## Compiling
-In order for this to work you need `pyhon`, `pillow`, `numpy` and if your in a linux distro you might need to install tkinter along with the dependencies.
+In order for this to work you need `pyhon`, `dotnet10` and all the dependecies are managed by the languages.
 
-
-```bat
+```shell
 git clone https://github.com/aKqir24/MC-Sky-Builder.git
 cd MC-Sky-Builder
-python window.py
+bash scripts/build.sh
+```
+
+The script is not done yet, I am still figuring out what compiler to use other than the native python one.
+For now you can run the code as it is and test it.
+```bash
+    source src/.venv/bin/activate
+    pip install -r requirements.txt
+    dotnet build generator
+    python3 -m src
 ```
 
 ## Usage

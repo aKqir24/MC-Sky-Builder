@@ -1,6 +1,6 @@
 from . import about
 from .config import *
-from .worker import Image, EnvironmentInitializer as resetto, ConfigurationManager as ConfigManagement
+from .worker import EnvironmentInitializer as resetto, ConfigurationManager as ConfigManagement
 
 from CTkToolTip import *
 from tkinter import filedialog

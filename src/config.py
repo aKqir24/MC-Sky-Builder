@@ -4,9 +4,10 @@
 
 import os
 import subprocess
-from json import dump
+from json import dump, load
 from pathlib import Path
 from tempfile import gettempdir
+from PIL import ImageFont
 
 # 1. Resolve Platform-Specific Handlers Once at Startup
 def _init_platform():
@@ -38,7 +39,7 @@ def _init_platform():
 # 2. Assign Immutable Constants (Static after initial import)
 config_folder, open_folder, default_output_path = _init_platform()
 config_file = config_folder / "config.json"
-tempdir = f"{gettempdir()}/MC-Sky-Builder"
+tempdir = f"{gettempdir()}/MC-Sky-Builder/"
 
 #? details config input values
 image_details: list = []
@@ -99,8 +100,7 @@ def readconfig():
                         configs[key] = json_open[key]
       except Exception:
           pass
-  return configs
 
 def writeconfig():
-    with open(config_file, 'w') as raw_config:
-        dump(configs, raw_config, indent=4)
+  with open(config_file, 'w') as raw_config:
+      dump(configs, raw_config, indent=4)

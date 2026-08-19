@@ -14,7 +14,7 @@ from shutil import copytree, copy, move, rmtree, make_archive
 from tkinter import messagebox
 from os import path, mkdir
 from json import dump
-from PIL import Image
+from SkyGenerator import Process
 from time import strftime
 
 class GetImageDetails:
@@ -24,18 +24,14 @@ class GetImageDetails:
     def get_image_name(self):
         # Get file extension and filename without extension
         img_ext = self.get_img_ext()
-        # Replace 'jpg' with 'jpeg' to standardize
         base_path = self.imgpath.replace('jpg', 'jpeg').replace(img_ext, "")
-        # Use os.path.basename to get just the filename
         filename = path.basename(base_path)
         image_details.append(filename)
         return filename
 
     def get_img_ext(self):
-        # Append image path to details list
-        image_details.append(self.imgpath)
         # Open image and get extension
-        img_format = Image.open(self.imgpath).format
+        img_format = Process.GetImageFormat(self.imgpath)
         ext = "." + img_format.lower()
         image_details.append(ext)
         return ext

@@ -1,3 +1,16 @@
+import os
+import sys
+import pythonnet
+pythonnet.load("coreclr")
+import clr
+
+generator_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "generator")
+if generator_dir not in sys.path:
+    sys.path.append(generator_dir)
+
+dll_path = os.path.join(generator_dir, "generator.dll")
+clr.AddReference(dll_path)
+
 import customtkinter as ctk
 from customtkinter.windows.widgets.font import FontManager
 FontManager.linux_font_path = "/tmp/.fonts/"
