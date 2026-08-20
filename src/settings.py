@@ -25,9 +25,11 @@ class SkySettingsWindow(ctk.CTkToplevel):
     self.grid_columnconfigure(0, weight=1)
     self.grid_rowconfigure(0, weight=1)
     self.settings_button.configure(command=self.focus_set)
+    self.widgets()
     try: self.iconbitmap(f'{title_icon_path}manufacturing.ico')
     except Exception: pass
 
+  def widgets(self):
     # Main window containers
     label_font = font_details[1]
     switch_wrapper = ctk.CTkFrame(self, height= 420, width= 342, fg_color="transparent")
@@ -115,7 +117,6 @@ class SettingsActionHandler:
         change_path_label(self.widgets[2], readconfig()['settings']['output_folder'], 49)
 
     def applysettings(self):
-      settingswindow=self
       def savelabel():
         setsvlb = ctk.CTkLabel(self.settingswindow, text="Saved!!", font=font_details[2])
         setsvlb.place(x=271, y=125), sleep(2)

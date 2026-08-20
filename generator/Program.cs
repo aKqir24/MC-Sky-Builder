@@ -273,66 +273,6 @@ namespace SkyGenerator
             if (File.Exists(mergedPath)) try { File.Delete(mergedPath); } catch (IOException) { }
         }
 
-        public void GenerateRoundedPreviewFromStream(string inputPath, Stream outputStream, int radius)
-        {
-            using var image = Image.Load<Rgba32>(inputPath);
-
-            int previewWidth = 512;
-            if (image.Width > previewWidth)
-            {
-                double scale = (double)previewWidth / image.Width;
-                int previewHeight = (int)(image.Height * scale);
-                image.Mutate(x => x.Resize(previewWidth, previewHeight));
-                radius = (int)(radius * scale);
-            }
-
-            int width = image.Width;
-            int height = image.Height;
-
-            // Centers of the four circular corners
-            float rSq = radius * radius;
-            int cx1 = radius;
-            int cy1 = radius;
-            int cx2 = width - radius;
-            int cy2 = height - radius;
-
-            image.ProcessPixelRows(acc =>
-            {
-                for (int y = 0; y < height; y++)
-                {
-                    Span<Rgba32> row = acc.GetRowSpan(y);
-                    for (int x = 0; x < width; x++)
-                    {
-                        // Determine which corner region this pixel falls into
-                        bool isTop = y < radius;
-                        bool isBottom = y >= height - radius;
-                        bool isLeft = x < radius;
-                        bool isRight = x >= width - radius;
-
-                        if ((isTop || isBottom) && (isLeft || isRight))
-                        {
-                            // Find the respective corner center
-                            int targetCx = isLeft ? cx1 : cx2;
-                            int targetCy = isTop ? cy1 : cy2;
-
-                            // Calculate exact distance squared from the circle center
-                            // Adding 0.5f samples from the pixel center for smooth anti-aliased look
-                            float dx = x - targetCx + 0.5f;
-                            float dy = y - targetCy + 0.5f;
-
-                            if ((dx * dx + dy * dy) > rSq)
-                            {
-                                var p = row[x];
-                                row[x] = new Rgba32(p.R, p.G, p.B, 0); // Make transparent
-                            }
-                        }
-                    }
-                }
-            });
-
-            image.SaveAsPng(outputStream);
-        }
-
         public void SaveOutputImage(string path)
         {
             outputImage.Save(path);

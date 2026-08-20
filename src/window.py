@@ -1,87 +1,44 @@
-import io
-from System.IO import MemoryStream
 import customtkinter as ctk
-from customtkinter import StringVar, CTkImage
+from customtkinter import CTkImage
+
 from tkinter import TclError, filedialog
 
 from .config import *
 from .worker import path, GetImageDetails
-from PIL import Image
+from PIL import Image, ImageDraw
 from .create import SkyImage, ResourcePackBuilder, Process
 from .settings import SkySettingsWindow, Thread, resetto, BooleanVar
 
 class SkyBuilderActions:
   #? Functions to be called by the button
-  go_output_folder = lambda: open_folder(configs['settings']['output_folder'])
+    go_output_folder = lambda: open_folder(configs['settings']['output_folder'])
 
-  def ask_image_folder(self, img_input, img_prev):
-    current_dir = configs['settings']['output_folder']
-    the_imagefolder_path = filedialog.askopenfilename(initialdir=current_dir, title="Select Image File", filetypes=[("Image Files", "*.jpg *.png *.jpeg")])
+    def ask_image_folder(self, img_input, img_prev):
+      current_dir = configs['settings']['output_folder']
+      the_imagefolder_path = filedialog.askopenfilename(initialdir=current_dir, title="Select Image File", filetypes=[("Image Files", "*.jpg *.png *.jpeg")])
 
-    if the_imagefolder_path:
-        image_details.clear()
-        image_details.append(the_imagefolder_path)
-        GetImageDetails(the_imagefolder_path).get_image_name()
-        change_path_label(img_input, the_imagefolder_path, 32)
+      if the_imagefolder_path:
+          image_details.clear()
+          image_details.append(the_imagefolder_path)
+          GetImageDetails(the_imagefolder_path).get_image_name()
+          change_path_label(img_input, the_imagefolder_path, 32)
 
-        # Show loading text and force UI render
-        img_prev.configure(text="Loading Preview...", font=font_details[4], image=None)
-        img_prev.update_idletasks()
+          # Show loading text and force UI render
+          img_prev.configure(text="Loading Preview...", font=font_details[4], image=None)
+          img_prev.update_idletasks()
 
-        # Create a C# MemoryStream to catch the bytes from C#
-        output_stream = MemoryStream()
+          # Make rounded image preview
+          with Image.open(the_imagefolder_path).resize((412,195)) as input_img:
+              mask = Image.new("L", input_img.size, 0)
+              ImageDraw.Draw(mask).rounded_rectangle([(0, 0), input_img.size], radius=16, fill=255)
+              input_img.putalpha(mask)
+              img_prev.configure(image=CTkImage(dark_image=input_img, light_image=input_img, size=(326, 166)), height=165, width=412, text="")
 
-        # Call the C# method, passing the stream directly
-        processor = Process(the_imagefolder_path)
-        processor.GenerateRoundedPreviewFromStream(the_imagefolder_path, output_stream, 82)
-
-        # Extract bytes from the C# MemoryStream into Python
-        output_stream.Position = 0
-        buffer = output_stream.ToArray()
-        output_stream.Dispose()
-
-        # Load bytes into memory for CustomTkinter without calling Image.open(filepath)
-        with io.BytesIO(buffer) as stream_bytes:
-            with Image.open(stream_bytes) as rgba_img:
-                img_prev.configure(
-                    image=CTkImage(dark_image=rgba_img, light_image=rgba_img, size=(326, 166)),
-                    height=165,
-                    width=412,
-                    text=""
-                )
-
-  def launch_create_sky(create_btn):
-    pack_name = lambda: image_details.append(user_pack_name)
-
-    def on_closing():
-      running = False
-      ResourcePackBuilder().clean_up()
-      progresswindow.destroy()
-
-    try:
-      percentage = StringVar()
-      progresswindow = ctk.CTkToplevel()
-      progresswindow.geometry('420x110')
-      progresswindow.minsize(424, 110)
-      progresswindow.title("Building Sky")
-      progresswindow.resizable(False, False)
-      try:
-          progresswindow.iconbitmap(f'{title_icon_path}conversion.ico')
-      except Exception:
-          pass
-      create_btn.configure(command=progresswindow.focus_set)
-      create_process = ctk.CTkProgressBar(progresswindow, width=380, height=14)
-      create_process.set(0)
-      ctk.CTkLabel(progresswindow, textvariable=percentage, font=font_details[2]).place(x=420/2-20, y=65)
-      create_process.place(x=20, y=25)
-      progresswindow.protocol("WM_DELETE_WINDOW", on_closing)
-      processcubeimg = SkyImage(progresswindow, create_process, percentage)
-      Thread(target=processcubeimg.create).start()
-      Thread(target=processcubeimg.loading_title).start()
-      progresswindow.wait_window()
-      create_btn.configure(command=lambda: SkyBuilderActions.launch_create_sky(create_btn))
-    except IndexError: processcubeimg.no_image_handler()
-    except (TclError, Exception): pass
+    def launch_create_sky(create_btn):
+        build_cube_image = SkyImage(create_btn)
+        Thread(target=build_cube_image.create).start()
+        Thread(target=build_cube_image.loading_title).start()
+        create_btn.configure(command=lambda: SkyBuilderActions.launch_create_sky(create_btn))
 
 class SkyBuilderWindow(ctk.CTk):
     def __init__(self):

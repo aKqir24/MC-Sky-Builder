@@ -8,7 +8,7 @@
 
 from .config import *
 from .worker import ResourcePackBuilder, messagebox
-from .dialogs import get_image_error
+from .dialogs import StatusMessage
 
 import customtkinter as ctk
 from time import sleep
@@ -17,27 +17,56 @@ from tkinter import TclError
 from SkyGenerator import Process
 import System
 
-class UpdateProgress:
+class UpdateWindow:
+    def __init__(self, create_btn=None):
+        self.create_btn = create_btn
+        self.percentage = ctk.StringVar()
+        self.percentage.set("0%")
+
+        self.progress_window = ctk.CTkToplevel()
+        self.progress_window.geometry('420x110')
+        self.progress_window.minsize(424, 110)
+        self.progress_window.title("Building Sky")
+        self.progress_window.resizable(False, False)
+        try: self.progress_window.iconbitmap(f'{title_icon_path}conversion.ico')
+        except Exception: pass
+
+        self.create_process = ctk.CTkProgressBar(self.progress_window, width=380, height=14)
+        self.create_process.set(0)
+        self.create_process.place(x=20, y=25)
+
+        label = ctk.CTkLabel(self.progress_window, textvariable=self.percentage, font=font_details[2])
+        label.place(x=420/2 - 20, y=65)
+
+        self.progress_window.protocol("WM_DELETE_WINDOW", self.on_closing)
+        if self.create_btn:
+            try: self.create_btn.configure(command=self.progress_window.focus_set)
+            except Exception: pass
+
     def loading_title(self):
         """Updates the progress window title while building the sky."""
         try:
             sleep(1)
             for dots in cycle(["", ".", "..", "...", "...", "..", "."]):
                 if int(self.percentage.get().replace("%", "")) >= 100:
+                    messagebox.showinfo(self.progress_window, "Finished!", "Sky `Building` was a success :D")
                     self.progress_window.destroy()
-                    messagebox.showinfo("Finished!", "Sky `Building` was a success :D")
                     break
                 self.progress_window.title(f"Building Sky{dots}")
                 sleep(1)
         except (TclError, RuntimeError, ValueError):
             pass
 
-class SkyImage(UpdateProgress):
-    def __init__(self, progress_window, create_process, percentage):
-        super().__init__()
-        self.progress_window = progress_window
-        self.create_process = create_process
-        self.percentage = percentage
+    def on_closing(self):
+        ResourcePackBuilder().clean_up()
+        try:
+            self.progress_window.destroy()
+        except Exception:
+            pass
+
+class SkyImage(UpdateWindow):
+    def __init__(self, create_btn=None):
+        super().__init__(create_btn)
 
     def create(self):
         try:
@@ -55,23 +84,20 @@ class SkyImage(UpdateProgress):
 
             progress_action = System.Action[System.Double](update_ui_progress)
             progress_value = processor.ConvertBack(pv, 1.0, configs['output']['curvature'], progress_action)
-
-            # 5. Save the main output cubemap image and export 3x4 grid face images with progress updates
             save_merged = f"{tempdir}combined.png"
             processor.SaveOutputImage(f"{tempdir}output_sky.png")
 
             img_res = configs['output']['resolution']
-            progress_value = processor.ExportFaces(int(img_res), tempdir, pv, progress_value, progress_action)
-
-            # 6. Execute edge merging, cropping, and resource pack building methods from C#
-            pack_builder = ResourcePackBuilder()
+            remaining_progress = (100 - progress_value) / 12 + 0.01
+            progress_value = processor.ExportFaces(int(img_res), tempdir, remaining_progress, progress_value, progress_action)
 
             merged_edges = processor.MergeSkyEdges(correct_pos, blend_width, tempdir, out_extension)
             processor.SaveRgbaImage(merged_edges, save_merged)
 
+            pack_builder = ResourcePackBuilder()
             processor.CropMergedImage(pack_builder.old_names, save_merged, img_res, tempdir, configs['output'].get('rotate_top_bottom', True))
             pack_builder.zip_mcpack_or_both(processor.MergeJavaSky(tempdir, pack_builder.old_names, processor.inputImageSize.Width // 4, processor.inputImageSize.Width // 4)).clean_up()
         except IndexError:
-            get_image_error(self.progress_window)
+            StatusMessage.get_image_error(self.progress_window)
 
     create_command = lambda self: self.create()
