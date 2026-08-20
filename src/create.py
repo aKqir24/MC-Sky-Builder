@@ -1,16 +1,9 @@
-"""
-
-    This Code Was Made By People From Stackoverflow
-    I Am To Lazy To Make These Kinds Of Hard Code
-    Since I'm Just A Beginer I Don't Know Many Maths
-
-"""
-
 from .config import *
-from .worker import ResourcePackBuilder, messagebox
+from .worker import ResourcePackBuilder
 from .dialogs import StatusMessage
 
 import customtkinter as ctk
+import ctkmessagebox2 as messagebox
 from time import sleep
 from itertools import cycle
 from tkinter import TclError

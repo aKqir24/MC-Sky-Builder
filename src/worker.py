@@ -11,7 +11,6 @@
 from .config import *
 
 from shutil import copytree, copy, move, rmtree, make_archive
-import ctkmessagebox2 as messagebox
 from os import path, mkdir
 from json import dump
 from SkyGenerator import Process
@@ -67,12 +66,12 @@ class ConfigurationManager:
         if resolution > 4 and resolution is not None:
             chosen_resolution = resolution
             self.custom_recent_resolution = resolution
-        elif supported_resolutions.get(resolution) and self.scale_recent_resolution != supported_resolutions[resolution]:
-            chosen_resolution = supported_resolutions[resolution]
+        elif default_resolutions.get(resolution) and self.scale_recent_resolution != default_resolutions[resolution]:
+            chosen_resolution = default_resolutions[resolution]
             self.custom_recent_resolution = None
         else:
-            chosen_resolution = self.custom_recent_resolution if self.custom_recent_resolution else supported_resolutions.get(resolution, resolution)
-        self.scale_recent_resolution = supported_resolutions.get(scale_res, scale_res)
+            chosen_resolution = self.custom_recent_resolution if self.custom_recent_resolution else default_resolutions.get(resolution, resolution)
+        self.scale_recent_resolution = default_resolutions.get(scale_res, scale_res)
         self.stored_config["output"].update({"resolution": chosen_resolution})
 
     def write_settings_config(self):

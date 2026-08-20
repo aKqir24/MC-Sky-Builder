@@ -13,11 +13,11 @@ clr.AddReference(dll_path)
 
 import customtkinter as ctk
 from customtkinter.windows.widgets.font import FontManager
-FontManager.linux_font_path = "/tmp/.fonts/"
-
 from .worker import EnvironmentInitializer
 from .config import RESOURCE_DIR
 from . import window
+
+FontManager.linux_font_path = f"{tempdir}.fonts/"
 
 if __name__ == '__main__':
     ctk.set_appearance_mode("Dark")

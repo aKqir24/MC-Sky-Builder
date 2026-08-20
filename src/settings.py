@@ -7,7 +7,7 @@ from tkinter import filedialog
 from PIL import Image
 from threading import Thread
 import customtkinter as ctk
-from customtkinter import BooleanVar, StringVar
+from customtkinter import BooleanVar
 from os import remove as rm, path
 
 class SkySettingsWindow(ctk.CTkToplevel):
@@ -61,7 +61,6 @@ class SkySettingsWindow(ctk.CTkToplevel):
     output_folder_label.grid(row=1, column=0, ipadx=8, padx=(16, 2), sticky="ews")
 
     change_path_label(output_folder_label)
-
     widgets = [ packing_zip_toggle, packing_mcpack_toggle, output_folder_label ]
     option_variables = [ self.pack_to_zip_var, self.pack_to_mcpack_var ]
     settingbuttons = SettingsActionHandler(widgets, self, option_variables)
@@ -96,17 +95,11 @@ class SettingsActionHandler:
     aboutprogram = lambda self:about.AboutWindow()
 
     def ask_output_folder(self):
-      userdesktop = default_output_path
-      try:
-        the_outputfolder_path = openDir()
-      except Exception:
-        the_outputfolder_path = filedialog.askdirectory(initialdir=userdesktop, title="Select Output Folder")
-      if the_outputfolder_path:
-        self.settingsconfigs.userpath(the_outputfolder_path)
-        self.settingswindow.focus_set()
-        change_path_label(self.widgets[2], the_outputfolder_path, 45)
-      else:
-        print("error")
+        the_outputfolder_path = filedialog.askdirectory(initialdir=default_output_path, title="Select Output Folder")
+        if the_outputfolder_path:
+          self.settingsconfigs.userpath(the_outputfolder_path)
+          self.settingswindow.focus_set()
+          change_path_label(self.widgets[2], the_outputfolder_path, 45)
 
     def resetsettings(self):
         if path.exists(config_file):

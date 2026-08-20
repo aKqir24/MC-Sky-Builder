@@ -8,15 +8,19 @@
 ![GitHub Release](https://img.shields.io/github/v/release/aKqir24/MC-Sky-Builder?sort=semver&display_name=release&style=for-the-badge&color=%231670FF)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/aKqir24/MC-Sky-Builder/total?style=for-the-badge&color=33C3C1)
 
-<d>A Program I Made That, Turns Your Chosen Image Into A Sky Overlay Pack Or Cubemap, And Exports It For Both For Java & Bedrock(Windows 10 Edition) Platforms.</d>
+A Program I Made That, Turns Your Chosen Image Into A Sky Overlay Pack Or Cubemap, And Exports It For Both For Minecraft Java & Bedrock(Windows 10 Edition) Platforms.
 </div>
 
-<h3> Features </h3>
-<ol>
-    <li> Supports Sky Packing For Java & Bedrock (.mcpack or .zip) </li>
-    <li> You Can Overide The Sky Resolution With 'Custom Resolutions' </li>
-    <li> Seperated Java, Bedrock, and Both Sky Output </li>
-</ol>
+### Features
+1. Supports Sky Packing For Java & Bedrock (.mcpack or .zip)
+2. Set or Custom SkyOutput:
+    - Resolution
+    - Curvature
+    - Edge Blend
+    - Satureation
+3. Seperated Java, Bedrock, and Folder Sky Export
+
+<br>
 
 <div align="center"><img width="682" height="298" alt="screenshot" src="https://github.com/user-attachments/assets/a6d36be8-9ef8-4cb2-85d9-023655b177a3" /></div>
 
@@ -25,7 +29,7 @@ The program was only compiled in windows 10 and may not work in some systems, ju
 
 
 ## Licensing
-Recently I replaced the <u>Pillow</u>, with a C# alternative called <u>ImageSharp</u>. The library is free for opensource projects like this, but if you want to make that warning not show during compile, I recomend you to apply for a free license in https://licensing.sixlabors.com/, make a `sixlabors.lic` along with the license ID and put in the root path in this project.
+Recently I replaced the <u>Pillow</u>, with a C# alternative called <u>ImageSharp</u>. The library is free for opensource projects like this, but if you want to make that warning not show during compile, I recomend you to apply for a free license in <https://licensing.sixlabors.com/>, make a `sixlabors.lic` along with the license ID and put in the root path in this project.
 
 ## Compiling
 In order for this to work you need `pyhon`, `dotnet10` and all the dependecies are managed by the languages.
@@ -53,6 +57,8 @@ For now you can run the code as it is and test it.
 
 <br>
 <div align="center">
-<h2>WARNING⚠!!</h2>
-<d>Some images might not load or result into a perfect sky overlay, due to the limitations of my ability to code a better one and of the modules.</d>
+
+## WARNING⚠!!
+
+Some images might not load or result into a perfect sky overlay, due to the limitations of my ability to code a better one and of the modules.
 </div>

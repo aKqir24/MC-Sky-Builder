@@ -1,13 +1,13 @@
 import customtkinter as ctk
 from customtkinter import CTkImage
 
-from tkinter import TclError, filedialog
+from tkinter import filedialog
 
 from .config import *
-from .worker import path, GetImageDetails
+from .worker import GetImageDetails
 from PIL import Image, ImageDraw
-from .create import SkyImage, ResourcePackBuilder, Process
-from .settings import SkySettingsWindow, Thread, resetto, BooleanVar
+from .create import SkyImage
+from .settings import SkySettingsWindow, Thread
 
 class SkyBuilderActions:
   #? Functions to be called by the button
@@ -43,7 +43,7 @@ class SkyBuilderActions:
 class SkyBuilderWindow(ctk.CTk):
     def __init__(self):
         super().__init__()
-        ctk.set_appearance_mode("Dark")
+        ctk.set_appearance_mode("dark")
         self.geometry('682x298')
         self.minsize(682, 298)
         self.title("MC Sky Builder")
@@ -58,7 +58,7 @@ class SkyBuilderWindow(ctk.CTk):
 
         main_slider_container = ctk.CTkFrame(self)
         image_input = ctk.CTkLabel(self, border_width=2, border_color="#709775", text="Image path will go here...", height=32, padx=6, pady=0, anchor="w", font=font_details[1])
-        image_preview = ctk.CTkLabel(self, border_width=1, border_color="#2b3a2c", fg_color="#18271a", text="", padx=0, pady=0, compound="center", height=195, width=336)
+        image_preview = ctk.CTkLabel(self, border_width=2, border_color=("#80a383", "#2b3a2c"), fg_color=("#92dd9c", "#18271a"), text="", padx=0, pady=0, compound="center", height=195, width=336)
         image_preview.grid(row=0, column=0, ipadx=0, padx=14, pady=(14, 12), columnspan=3, sticky="wnse")
         main_slider_container.grid(row=0, column=6, padx=4, sticky="ew")
         image_input.grid(row=1, column=0, ipadx=6, padx=(16, 0), pady=(0, 4), columnspan=2, sticky="we")
