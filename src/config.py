@@ -66,8 +66,8 @@ PACKAGE_DIR = Path(__file__).resolve().parent
 RESOURCE_DIR = PACKAGE_DIR / "resource"
 
 default_resolutions = [256, 512, 1024, 2048]
-noto_font = str(RESOURCE_DIR / "noto_sans.ttf")
-try: noto_font_name = TTFont(noto_font)['name'].getDebugName(1)
+NOTO_FONT = str(RESOURCE_DIR / "noto_sans.ttf")
+try: noto_font_name = TTFont(NOTO_FONT)['name'].getDebugName(1)
 except Exception: noto_font_name = "sans-serif"
 
 font_details = [

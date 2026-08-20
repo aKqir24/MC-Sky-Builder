@@ -17,27 +17,25 @@ from tkinter import TclError
 from SkyGenerator import Process
 import System
 
-class UpdateProgress:
+class SkyImage:
+    def __init__(self, progress_window, create_process, percentage):
+        self.progress_window = progress_window
+        self.create_process = create_process
+        self.percentage = percentage
+
     def loading_title(self):
         """Updates the progress window title while building the sky."""
         try:
             sleep(1)
             for dots in cycle(["", ".", "..", "...", "...", "..", "."]):
                 if int(self.percentage.get().replace("%", "")) >= 100:
+                    messagebox.showinfo(self.progress_window, "Finished!", "Sky `Building` was a success :D")
                     self.progress_window.destroy()
-                    messagebox.showinfo("Finished!", "Sky `Building` was a success :D")
                     break
                 self.progress_window.title(f"Building Sky{dots}")
                 sleep(1)
         except (TclError, RuntimeError, ValueError):
             pass
-
-class SkyImage(UpdateProgress):
-    def __init__(self, progress_window, create_process, percentage):
-        super().__init__()
-        self.progress_window = progress_window
-        self.create_process = create_process
-        self.percentage = percentage
 
     def create(self):
         try:
@@ -55,15 +53,13 @@ class SkyImage(UpdateProgress):
 
             progress_action = System.Action[System.Double](update_ui_progress)
             progress_value = processor.ConvertBack(pv, 1.0, configs['output']['curvature'], progress_action)
-
-            # 5. Save the main output cubemap image and export 3x4 grid face images with progress updates
             save_merged = f"{tempdir}combined.png"
             processor.SaveOutputImage(f"{tempdir}output_sky.png")
 
             img_res = configs['output']['resolution']
-            progress_value = processor.ExportFaces(int(img_res), tempdir, pv, progress_value, progress_action)
+            remaining_progress = (100 - progress_value) / 12 + 0.01
+            progress_value = processor.ExportFaces(int(img_res), tempdir, remaining_progress, progress_value, progress_action)
 
-            # 6. Execute edge merging, cropping, and resource pack building methods from C#
             pack_builder = ResourcePackBuilder()
 
             merged_edges = processor.MergeSkyEdges(correct_pos, blend_width, tempdir, out_extension)
