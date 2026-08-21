@@ -14,6 +14,9 @@ jobs:
 
     runs-on: ${{ matrix.os }}
 
+    environment:
+      name: IMAGESHARP_LICENSE_ID
+
     steps:
       - name: Check-out repository
         uses: actions/checkout@v4
@@ -23,14 +26,17 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Build C# Generator
-        run:  echo "${{ secrets.IMAGESHARP_LICENSE_ID }}" > sixlabors.lic && dotnet build generator -c Release
-
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.13.5'
           cache: 'pip'
+
+      - name: Build C# Generator
+        shell: bash
+        run: |
+          python -c "import os; lic = r'${{ secrets.IMAGESHARP_LICENSE_ID }}'; open('sixlabors.lic', 'w').write(lic) if lic else None"
+          dotnet build generator -c Release
 
       - name: Install Dependencies
         run: |
@@ -48,8 +54,9 @@ jobs:
             customtkinter
             PIL
             pythonnet
-          include-data-dir: src/resource=resource
-          include-data-dir: src/generator=generator
+          include-data-dir: |
+            src/resource=resource
+            src/generator=generator
           enable-plugins: tk-inter
 
       - name: Upload CI Artifacts

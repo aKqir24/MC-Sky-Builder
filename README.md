@@ -4,7 +4,7 @@
 <h1>MC-Sky-Builder</h1>
 
 ![Codacy grade](https://img.shields.io/codacy/grade/8b0de239c77f4787830779608186b5fa?style=for-the-badge)
-![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/aKqir24/MC-Sky-Builder/release.yml?branch=main&style=for-the-badge)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/aKqir24/MC-Sky-Builder/build.yml?branch=v2.0.0-dev&style=for-the-badge)
 ![GitHub Release](https://img.shields.io/github/v/release/aKqir24/MC-Sky-Builder?sort=semver&display_name=release&style=for-the-badge&color=%231670FF)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/aKqir24/MC-Sky-Builder/total?style=for-the-badge&color=33C3C1)
 
