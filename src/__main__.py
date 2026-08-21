@@ -14,7 +14,7 @@ clr.AddReference(dll_path)
 import customtkinter as ctk
 from customtkinter.windows.widgets.font import FontManager
 from .worker import EnvironmentInitializer
-from .config import RESOURCE_DIR
+from .config import tempdir, RESOURCE_DIR
 from . import window
 
 FontManager.linux_font_path = f"{tempdir}.fonts/"

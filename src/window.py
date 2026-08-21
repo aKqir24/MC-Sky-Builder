@@ -14,25 +14,26 @@ class SkyBuilderActions:
     go_output_folder = lambda: open_folder(configs['settings']['output_folder'])
 
     def ask_image_folder(self, img_input, img_prev):
-      current_dir = configs['settings']['output_folder']
-      the_imagefolder_path = filedialog.askopenfilename(initialdir=current_dir, title="Select Image File", filetypes=[("Image Files", "*.jpg *.png *.jpeg")])
+        current_dir = configs['settings']['output_folder']
+        the_imagefolder_path = filedialog.askopenfilename(initialdir=current_dir, title="Select Image File", filetypes=[("Image Files", "*.jpg *.png *.jpeg")])
 
-      if the_imagefolder_path:
-          image_details.clear()
-          image_details.append(the_imagefolder_path)
-          GetImageDetails(the_imagefolder_path).get_image_name()
-          change_path_label(img_input, the_imagefolder_path, 32)
+        if the_imagefolder_path:
+            image_details.clear()
+            image_details.append(the_imagefolder_path)
+            GetImageDetails(the_imagefolder_path).get_image_name()
+            change_path_label(img_input, the_imagefolder_path, 32)
 
-          # Show loading text and force UI render
-          img_prev.configure(text="Loading Preview...", font=font_details[4], image=None)
-          img_prev.update_idletasks()
+            # Show loading text and force UI render
+            img_prev.configure(text="Loading Preview...", font=font_details[4])
+            img_prev.update_idletasks()
 
-          # Make rounded image preview
-          with Image.open(the_imagefolder_path).resize((412,195)) as input_img:
-              mask = Image.new("L", input_img.size, 0)
-              ImageDraw.Draw(mask).rounded_rectangle([(0, 0), input_img.size], radius=16, fill=255)
-              input_img.putalpha(mask)
-              img_prev.configure(image=CTkImage(dark_image=input_img, light_image=input_img, size=(326, 166)), height=165, width=412, text="")
+            # Make rounded image preview
+            with Image.open(the_imagefolder_path).resize((412,195)) as input_img:
+                mask = Image.new("L", input_img.size, 0)
+                ImageDraw.Draw(mask).rounded_rectangle([(0, 0), input_img.size], radius=16, fill=255)
+                input_img.putalpha(mask)
+                self.preview_img = CTkImage(dark_image=input_img, light_image=input_img, size=(326, 166))
+                img_prev.configure(image=self.preview_img, height=165, width=412, text="")
 
     def launch_create_sky(create_btn):
         build_cube_image = SkyImage(create_btn)
@@ -79,8 +80,7 @@ class SkyBuilderWindow(ctk.CTk):
             ("Resolution:", 0, 1, 3, 0, "e", 3),
             ("Curvature:", 2, 3, 3, 0.1, "e", None),
             ("Edge Blend:", 4, 5, 100, 50, "e", None),
-            ("Saturation:", 6, 7, 100, 50, "e", None),
-        ]
+            ("Saturation:", 6, 7, 100, 1.0, "e", None) ]
 
         for index, (text, lbl_row, frm_row, to_val, from_val, entry_sticky, steps) in enumerate(sliders_config):
             ctk.CTkLabel(main_slider_container, text=text, font=font_details[1]).grid(row=lbl_row, column=0, sticky="wn", pady=(8, 0), padx=(8, 0))

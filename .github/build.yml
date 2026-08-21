@@ -1,0 +1,59 @@
+name: CI Build Check
+
+on:
+  push:
+    branches: [ "v2.0.0-dev", "master" ]
+  pull_request:
+    branches: [ "v2.0.0-dev", "master" ]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check-out repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Build C# Generator
+        run:  echo "${{ secrets.IMAGESHARP_LICENSE_ID }}" > sixlabors.lic && dotnet build generator -c Release
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13.5'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build Executable with Nuitka
+        uses: Nuitka/Nuitka-Action@main
+        with:
+          nuitka-version: main
+          python-flags: -m src
+          mode: app
+          output-dir: build
+          include-package: |
+            customtkinter
+            PIL
+            pythonnet
+          include-data-dir: src/resource=resource
+          include-data-dir: src/generator=generator
+          enable-plugins: tk-inter
+
+      - name: Upload CI Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ runner.os }}-CI-Build
+          path: build/**/*

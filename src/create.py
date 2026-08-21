@@ -76,7 +76,7 @@ class SkyImage(UpdateWindow):
                     pass
 
             progress_action = System.Action[System.Double](update_ui_progress)
-            progress_value = processor.ConvertBack(pv, 1.0, configs['output']['curvature'], progress_action)
+            progress_value = processor.ConvertBack(pv, 1.0, configs['output']['curvature'], configs['output']['saturation'], progress_action)
             save_merged = f"{tempdir}combined.png"
             processor.SaveOutputImage(f"{tempdir}output_sky.png")
 

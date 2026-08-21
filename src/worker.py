@@ -50,33 +50,22 @@ class EnvironmentInitializer:
         return self
 
 class ConfigurationManager:
-    def __init__(self, output_resolution, pack_zip_val, pack_mcpack_val):
-        self.output_resolution = output_resolution
-        self.pack_zip_val = pack_zip_val
-        self.pack_mcpack_val = pack_mcpack_val
+    def __init__(self, widgets_state):
+        self.widgets_state = widgets_state
+        self.pack_zip_val, self.pack_mcpack_val, self.auto_save_val, self.ask_packname_val = widgets_state
+        self.switch_configs = [widgets_state, ["export_zip", "export_mcpack", "auto_save", "ask_pack_name"]]
         self.stored_config = configs
-        self.custom_recent_resolution = None
-        self.scale_recent_resolution = None
+        self.update_switch()
 
-    def userpath(self, folder):
-        self.stored_config["settings"].update({"output_folder": folder})
-
-    def output_res(self, resolution):
-        scale_res = self.output_resolution.get()
-        if resolution > 4 and resolution is not None:
-            chosen_resolution = resolution
-            self.custom_recent_resolution = resolution
-        elif default_resolutions.get(resolution) and self.scale_recent_resolution != default_resolutions[resolution]:
-            chosen_resolution = default_resolutions[resolution]
-            self.custom_recent_resolution = None
-        else:
-            chosen_resolution = self.custom_recent_resolution if self.custom_recent_resolution else default_resolutions.get(resolution, resolution)
-        self.scale_recent_resolution = default_resolutions.get(scale_res, scale_res)
-        self.stored_config["output"].update({"resolution": chosen_resolution})
+    def update_switch(self, select_mode=False):
+        for switch in range(len(self.switch_configs[0])):
+            if configs['settings'][self.switch_configs[1][switch]] == select_mode: self.switch_configs[0][switch].deselect()
+            else: self.switch_configs[0][switch].select()
 
     def write_settings_config(self):
-        self.output_res(self.output_resolution.get())
         self.stored_config["settings"].update({
+            "auto_save": self.auto_save_val.get(),
+            "ask_pack_name": self.ask_packname_val.get(),
             "export_zip": self.pack_zip_val.get(),
             "export_mcpack": self.pack_mcpack_val.get()
         })

@@ -7,7 +7,7 @@ import subprocess
 from json import dump, load
 from pathlib import Path
 from tempfile import gettempdir
-from fontTools.ttLib import TTFont
+from PIL import ImageFont
 
 # 1. Resolve Platform-Specific Handlers Once at Startup
 def _init_platform():
@@ -56,7 +56,7 @@ configs = {
         "resolution": 256,
         "curvature": 2.14,
         "edge_blend": 50,
-        "saturation": 0,
+        "saturation": 1.0,
         "rotate_top_bottom": True
     }
 }
@@ -67,7 +67,7 @@ RESOURCE_DIR = PACKAGE_DIR / "resource"
 
 default_resolutions = [256, 512, 1024, 2048]
 NOTO_FONT = str(RESOURCE_DIR / "noto_sans.ttf")
-try: noto_font_name = TTFont(NOTO_FONT)['name'].getDebugName(1)
+try: noto_font_name = ImageFont.truetype(NOTO_FONT).getname()[0]
 except Exception: noto_font_name = "sans-serif"
 
 font_details = [
@@ -87,20 +87,20 @@ def change_path_label(label, input_path=None, length=55):
       for index in range(0, len(input_path), 1000):
         label.configure(text=input_path[index:index+length]+"...")
 
-def readconfig():
+def readconfig(config_data=configs['settings']):
   if os.path.exists(config_file):
       try:
           with open(config_file, 'r') as raw_config:
             json_open = load(raw_config)
-            for key in configs:
+            for key in config_data:
                 if key in json_open:
                     if isinstance(configs[key], dict) and isinstance(json_open[key], dict):
-                        configs[key].update(json_open[key])
+                        config_data[key].update(json_open[key])
                     else:
-                        configs[key] = json_open[key]
+                        config_data[key] = json_open[key]
       except Exception:
           pass
 
-def writeconfig():
+def writeconfig(config_data=configs):
   with open(config_file, 'w') as raw_config:
-      dump(configs, raw_config, indent=4)
+      dump(config_data, raw_config, indent=4)

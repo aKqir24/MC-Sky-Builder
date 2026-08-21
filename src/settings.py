@@ -1,10 +1,11 @@
 from . import about
 from .config import *
-from .worker import EnvironmentInitializer as resetto, ConfigurationManager as ConfigManagement
+from .worker import EnvironmentInitializer as resetto, ConfigurationManager
 
 from CTkToolTip import *
 from tkinter import filedialog
 from PIL import Image
+from time import sleep
 from threading import Thread
 import customtkinter as ctk
 from customtkinter import BooleanVar
@@ -14,8 +15,6 @@ class SkySettingsWindow(ctk.CTkToplevel):
   def __init__ (self, settingsbutton):
     super().__init__()
     self.settings_button = settingsbutton
-    self.pack_to_zip_var = BooleanVar()
-    self.pack_to_mcpack_var = BooleanVar()
 
     self.focus_set()
     self.title("Settings")
@@ -40,15 +39,13 @@ class SkySettingsWindow(ctk.CTkToplevel):
     widget_buttons_wrapper_right.grid(row=3, column=1, padx=16, pady=(0, 14), sticky="en")
 
     # Switch for packing options with built-in text
-    packing_mcpack_toggle = ctk.CTkSwitch(switch_wrapper, text="Mcpack Output", font=label_font, corner_radius=8)
-    packing_zip_toggle = ctk.CTkSwitch(switch_wrapper, text="Zip Output", font=label_font, corner_radius=8)
+    packing_mcpack_toggle = ctk.CTkSwitch(switch_wrapper, onvalue=True, offvalue=False, text="Mcpack Output", font=label_font, corner_radius=8)
+    packing_zip_toggle = ctk.CTkSwitch(switch_wrapper, onvalue=True, offvalue=False, text="Zip Output", font=label_font, corner_radius=8)
     packing_mcpack_toggle.grid(row=0, column=0, pady=2, padx=8, sticky="we")
     packing_zip_toggle.grid(row=1, column=0, pady=2, padx=8, sticky="wn")
-    packing_zip_toggle.deselect() if not configs['settings']['export_zip'] else packing_zip_toggle.select()
-    packing_mcpack_toggle.deselect() if not configs['settings']['export_mcpack'] else packing_mcpack_toggle.select()
 
-    auto_save_toggle = ctk.CTkSwitch(switch_wrapper, text="Auto save", font=label_font, corner_radius=8)
-    ask_packname_toggle = ctk.CTkSwitch(switch_wrapper, text="Ask packname", font=label_font, corner_radius=8)
+    auto_save_toggle = ctk.CTkSwitch(switch_wrapper, onvalue=True, offvalue=False, text="Auto save", font=label_font, corner_radius=8)
+    ask_packname_toggle = ctk.CTkSwitch(switch_wrapper, onvalue=True, offvalue=False, text="Ask packname", font=label_font, corner_radius=8)
     auto_save_toggle.grid(row=0, column=1, pady=2, ipadx=8, padx=8, sticky="wn")
     ask_packname_toggle.grid(row=1, column=1, pady=2, padx=8, sticky="wn")
 
@@ -61,15 +58,14 @@ class SkySettingsWindow(ctk.CTkToplevel):
     output_folder_label.grid(row=1, column=0, ipadx=8, padx=(16, 2), sticky="ews")
 
     change_path_label(output_folder_label)
-    widgets = [ packing_zip_toggle, packing_mcpack_toggle, output_folder_label ]
-    option_variables = [ self.pack_to_zip_var, self.pack_to_mcpack_var ]
-    settingbuttons = SettingsActionHandler(widgets, self, option_variables)
+    widgets = [ packing_zip_toggle, packing_mcpack_toggle, auto_save_toggle, ask_packname_toggle ]
+    settingbuttons = SettingsActionHandler(widgets, self, output_folder_label)
 
     # Clean modern buttons with uniform aesthetic and even spacing
     btn_font = font_details[2]
-    about_icon = ctk.CTkImage(dark_image=Image.open(str(RESOURCE_DIR / "actions" / "about.png")), size=(28, 28))
-    close_icon = ctk.CTkImage(dark_image=Image.open(str(RESOURCE_DIR / "actions" / "close.png")), size=(28, 28))
-    apply_icon = ctk.CTkImage(dark_image=Image.open(str(RESOURCE_DIR / "actions" / "apply.png")), size=(28, 28))
+    self.about_icon = ctk.CTkImage(dark_image=Image.open(str(RESOURCE_DIR / "actions" / "about.png")), size=(28, 28))
+    self.close_icon = ctk.CTkImage(dark_image=Image.open(str(RESOURCE_DIR / "actions" / "close.png")), size=(28, 28))
+    self.apply_icon = ctk.CTkImage(dark_image=Image.open(str(RESOURCE_DIR / "actions" / "apply.png")), size=(28, 28))
     ctk.CTkButton(self, command=settingbuttons.ask_output_folder, text="CHANGE", font=btn_font, corner_radius=6, width=1, height=32
                  ).grid(row=1, column=1, ipadx=8, ipady=1, padx=(8, 16), columnspan=1, sticky="we")
     ctk.CTkButton(widget_buttons_wrapper_left, command=settingbuttons.aboutprogram, image=about_icon, text="",
@@ -86,35 +82,35 @@ class SkySettingsWindow(ctk.CTkToplevel):
     self.settings_button.configure(command = lambda: SkySettingsWindow(self.settings_button))
 
 class SettingsActionHandler:
-    def __init__ (self, widgets, settingswindow, option_variables):
+    def __init__ (self, widgets, settings_window, output_folder_label):
       self.widgets=widgets
-      self.settingswindow=settingswindow
-      self.settingsconfigs = ConfigManagement(widgets[0], option_variables[0], option_variables[1])
+      self.output_folder_label = output_folder_label
+      self.settings_window=settings_window
+      self.settingsconfigs = ConfigurationManager(widgets)
 
-    closesettings = lambda self:self.settingswindow.destroy()
+    closesettings = lambda self:self.settings_window.destroy()
     aboutprogram = lambda self:about.AboutWindow()
 
     def ask_output_folder(self):
         the_outputfolder_path = filedialog.askdirectory(initialdir=default_output_path, title="Select Output Folder")
         if the_outputfolder_path:
-          self.settingsconfigs.userpath(the_outputfolder_path)
-          self.settingswindow.focus_set()
-          change_path_label(self.widgets[2], the_outputfolder_path, 45)
+          self.settingsconfigs.stored_config['settings']['output_folder']
+          self.settings_window.focus_set()
+          change_path_label(self.output_folder_label, the_outputfolder_path, 45)
 
     def resetsettings(self):
-        if path.exists(config_file):
-            rm(config_file)
+        if path.exists(config_file): rm(config_file)
         resetto().setdefaults()
-        self.widgets[0].deselect()
-        self.widgets[1].deselect()
+        self.settingsconfigs.update_switch(True)
         change_path_label(self.widgets[2], readconfig()['settings']['output_folder'], 49)
 
     def applysettings(self):
       def savelabel():
-        setsvlb = ctk.CTkLabel(self.settingswindow, text="Saved!!", font=font_details[2])
+        setsvlb = ctk.CTkLabel(self.settings_window, text="Saved!!", font=font_details[2])
         setsvlb.place(x=271, y=125), sleep(2)
         setsvlb.destroy()
 
       Thread(target=self.settingsconfigs.write_settings_config).start()
       Thread(target=savelabel).start()
-      self.settingswindow.focus_set()
+      self.settingsconfigs.update_switch()
+      self.settings_window.focus_set()

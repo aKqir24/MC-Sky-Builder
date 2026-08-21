@@ -76,13 +76,15 @@ namespace SkyGenerator
             return new object[] { pv, correctPosition, blendWidth };
         }
 
-        public double ConvertBack(double pv, double currentPercent, double curvature = 2.14, Action<double> onProgress = null)
+        public double ConvertBack(double pv, double currentPercent, double curvature = 2.14, double saturation = 1.0, Action<double> onProgress = null)
         {
             double edge = inputImageSize.Width / 4.0;
             const double pi = Math.PI;
 
             using Image<Rgb24> imgIn = Image.Load<Rgb24>(inputImage);
             int w = imgIn.Width, h = imgIn.Height;
+            float saturationMultiplier = (float)saturation;
+            imgIn.Mutate(x => x.Saturate(saturationMultiplier));
 
             outputImage.ProcessPixelRows(outAcc =>
             {

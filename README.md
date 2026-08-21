@@ -34,19 +34,13 @@ Recently I replaced the <u>Pillow</u>, with a C# alternative called <u>ImageShar
 ## Compiling
 In order for this to work you need `pyhon`, `dotnet10` and all the dependecies are managed by the languages.
 
-```shell
-git clone https://github.com/aKqir24/MC-Sky-Builder.git
-cd MC-Sky-Builder
-bash scripts/build.sh
-```
-
 The script is not done yet, I am still figuring out what compiler to use other than the native python one.
 For now you can run the code as it is and test it.
-```bash
-    source src/.venv/bin/activate
-    pip install -r requirements.txt
-    dotnet build generator
-    python3 -m src
+```shell
+source src/.venv/bin/activate
+pip install -r requirements.txt
+dotnet build generator
+python3 -m src
 ```
 
 ## Usage
