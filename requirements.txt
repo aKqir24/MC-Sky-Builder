@@ -3,4 +3,3 @@ customtkinter==6.0.0
 ctkmessagebox2
 pillow
 CtkToolTip
-nuitka

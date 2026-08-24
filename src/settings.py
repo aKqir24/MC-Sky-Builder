@@ -68,14 +68,14 @@ class SkySettingsWindow(ctk.CTkToplevel):
     self.apply_icon = ctk.CTkImage(dark_image=Image.open(str(RESOURCE_DIR / "actions" / "apply.png")), size=(28, 28))
     ctk.CTkButton(self, command=settingbuttons.ask_output_folder, text="CHANGE", font=btn_font, corner_radius=6, width=1, height=32
                  ).grid(row=1, column=1, ipadx=8, ipady=1, padx=(8, 16), columnspan=1, sticky="we")
-    ctk.CTkButton(widget_buttons_wrapper_left, command=settingbuttons.aboutprogram, image=about_icon, text="",
+    ctk.CTkButton(widget_buttons_wrapper_left, command=settingbuttons.aboutprogram, image=self.about_icon, text="",
            font=btn_font, corner_radius=6, width=28, height=30).grid(row=0, column=0, ipadx=0)
     ctk.CTkButton(widget_buttons_wrapper_left, command=settingbuttons.resetsettings, text="RESET",
            font=btn_font, corner_radius=6, width=88, height=30).grid(row=0, column=1, ipadx=4, ipady=2, padx=4)
-    apply = ctk.CTkButton(widget_buttons_wrapper_right, command=settingbuttons.applysettings, text="", image=apply_icon,
+    apply = ctk.CTkButton(widget_buttons_wrapper_right, command=settingbuttons.applysettings, text="", image=self.apply_icon,
             font=btn_font, corner_radius=6, width=28, height=30)
     apply.grid(row=0, column=0, ipadx=4, padx=4)
-    ctk.CTkButton(widget_buttons_wrapper_right, command=settingbuttons.closesettings, text="", image=close_icon,
+    ctk.CTkButton(widget_buttons_wrapper_right, command=settingbuttons.closesettings, text="", image=self.close_icon,
            font=btn_font, corner_radius=6, width=28, height=30).grid(row=0, column=1, ipadx=4)
 
     self.wait_window()

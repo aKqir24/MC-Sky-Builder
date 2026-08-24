@@ -1,0 +1,3 @@
+Hello, I am Akqir or can just call me Andrei, the one who made this program. Here in this about window, I will tell you about this program I made.
+
+It started when I was editing a sky overlay for MC and I always automate stuff in python especially the time I am edited a sky overlay pack, which was never released.

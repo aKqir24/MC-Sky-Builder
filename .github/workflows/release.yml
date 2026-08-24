@@ -42,12 +42,7 @@ jobs:
           python-flags: -m src
           mode: app
           output-dir: build
-          include-package: |
-            customtkinter
-            PIL
-            pythonnet
-          include-data-dir: src/resource=resource
-          include-data-dir: src/generator=generator
+          user-package-configuration-file: mcskybuilder.nuitka-package.config.yml
           enable-plugins: tk-inter
 
       - name: Upload Release Assets
