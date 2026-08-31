@@ -183,13 +183,21 @@ namespace SkyGenerator
             bottom.Mutate(x => x.Rotate(180));
 
             int h = top.Height, w = top.Width;
+
+            // 1. To prepare the images for the game, a new file with dimensions of image.Width by image.Heightx3 should be created.
             var mrg = new Image<Rgba32>(Configuration.Default, w, h * 3);
+
+            // 2. The top, bottom, and front images are dragged into the new file and arranged in a vertical pattern to align the cube map.
             mrg.Mutate(x => { x.DrawImage(top, new Point(0, 0), 1f).DrawImage(front, new Point(0, h), 1f).DrawImage(bottom, new Point(0, h * 2), 1f); });
 
+            // 3. Because a visible line often appears where the images meet, a secondary file with dimensions of image.Width/2 by image.Heightx3 is created to help blend the textures.
             using var left = mrg.Clone(x => x.Crop(new Rectangle(0, 0, w / 2, h * 3)));
             using var right = mrg.Clone(x => x.Crop(new Rectangle(w / 2, 0, w / 2, h * 3)));
 
+            // 4. The images are copied and pasted into new layers, with a recommendation to prioritize the brighter side of the image to improve the visual blend.
             var combined = new Image<Rgba32>(Configuration.Default, w, h * 3);
+
+            // 5. The original layer containing the visible line is deleted, and one of the copied layers is flipped horizontally and merged to create a seamless transition.
             combined.Mutate(x => x.DrawImage(left, new Point(0, 0), 1f).DrawImage(right, new Point(left.Width, 0), 1f));
 
             if (blendWidth > 0)
@@ -198,10 +206,12 @@ namespace SkyGenerator
                 int rightWidth = right.Width;
                 combined.ProcessPixelRows(acc =>
                 {
+                    // 6. To prepare the eraser tool for blending sky textures, set the hardness to the lowest level, disable anti-aliasing, and adjust the size to 500 which is the blend width.
                     for (int y = 0; y < acc.Height; y++)
                     {
                         var row = acc.GetRowSpan(y);
 
+                        // 7. Erase the seam line between sky images by moving straight down or following a more natural, flowing pattern to improve the visual transition.
                         for (int bw = 0; bw < blendWidth; bw++)
                         {
                             double alpha = (double)bw / (blendWidth - 1);
@@ -215,6 +225,7 @@ namespace SkyGenerator
 
                             if ((uint)destX < (uint)acc.Width)
                             {
+                                // 8. While some seams or points may remain visible during the editing process, if unwanted points or artifacts appear, create a new layer and use the dropper tool to select a base color, then use a paintbrush to blend the area; adjusting the opacity can further help the correction blend in.
                                 row[destX] = new Rgba32(
                                     (byte)Math.Clamp(Math.Round((1 - alpha) * p1.R + alpha * p2.R), 0, 255),
                                     (byte)Math.Clamp(Math.Round((1 - alpha) * p1.G + alpha * p2.G), 0, 255),
