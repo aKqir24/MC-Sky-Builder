@@ -47,30 +47,18 @@ namespace SkyGenerator
 
         public object[] OutputValues(Size inSize, double edgeBlend = 50.0)
         {
-            double edge = inSize.Width / 4.0;
             double pv;
-            int correctPosition;
+            double edge = inSize.Width / 4.0;
+            int correctPosition = inSize.Width / 426; /*Width*/
             int blendWidth = (int)(edge * edgeBlend);
 
-            if (inSize.Width >= 3840 || inSize.Height >= 2160)
+            if (inSize.Width > inSize.Height)
             {
-                pv = 0.010;
-                correctPosition = 6;
-            }
-            else if (inSize.Width >= 2048 || inSize.Height >= 1080)
-            {
-                pv = 0.0225;
-                correctPosition = 4;
-            }
-            else if (inSize.Width >= 1280 || inSize.Height >= 1080)
-            {
-                pv = 0.045;
-                correctPosition = 3;
+                pv = inSize.Width / 999999.0;
             }
             else
             {
-                pv = 0.071;
-                correctPosition = 2;
+                pv = inSize.Height / 999999.0;
             }
 
             return new object[] { pv, correctPosition, blendWidth };

@@ -35,20 +35,6 @@ class GetImageDetails:
         image_details.append(ext)
         return ext
 
-class EnvironmentInitializer:
-    def make_temp_dir(self):
-        if not path.exists(tempdir):
-            mkdir(tempdir)
-        if not path.exists(config_folder):
-            mkdir(config_folder)
-        return self
-
-    def set_defaults(self):
-        if not path.exists(config_file):
-            writeconfig()
-        readconfig()
-        return self
-
 class ConfigurationManager:
     def __init__(self, widgets_state):
         self.widgets_state = widgets_state

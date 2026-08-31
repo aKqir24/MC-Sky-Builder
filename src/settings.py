@@ -1,6 +1,6 @@
 from . import about
 from .config import *
-from .worker import EnvironmentInitializer as resetto, ConfigurationManager
+from .worker import ConfigurationManager
 
 from CTkToolTip import *
 from tkinter import filedialog
@@ -100,7 +100,7 @@ class SettingsActionHandler:
 
     def resetsettings(self):
         if path.exists(config_file): rm(config_file)
-        resetto().setdefaults()
+        EnvironmentInitializer().setdefaults()
         self.settingsconfigs.update_switch(True)
         change_path_label(self.widgets[2], readconfig()['settings']['output_folder'], 49)
 

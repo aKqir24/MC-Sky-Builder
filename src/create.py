@@ -69,6 +69,7 @@ class SkyImage(UpdateWindow):
 
             def update_ui_progress(val):
                 try:
+                    print(float(val))
                     self.percentage.set(f"{int(val)}%")
                     self.create_process.set(val / 100.0)
                     self.progress_window.update_idletasks()
