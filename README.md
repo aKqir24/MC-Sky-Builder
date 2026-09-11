@@ -27,10 +27,6 @@ A Program I Made That, Turns Your Chosen Image Into A Sky Overlay Pack Or Cubema
 ## Setup
 The program was only compiled in windows 10 and may not work in some systems, just simply download the zip file from the [releases](https://github.com/aKqir24/MC-Sky-Builder/releases) and double click the `MC_Sky_Builder.exe` to start the program.
 
-
-## Licensing
-Recently I replaced the <u>Pillow</u>, with a C# alternative called <u>ImageSharp</u>. The library is free for opensource projects like this, but if you want to make that warning not show during compile, I recomend you to apply for a free license in <https://licensing.sixlabors.com/>, make a `sixlabors.lic` along with the license ID and put in the root path in this project.
-
 ## Compiling
 In order for this to work you need `pyhon`, `dotnet10` and all the dependecies are managed by the languages.
 

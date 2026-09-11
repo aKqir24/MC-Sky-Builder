@@ -9,6 +9,8 @@ from itertools import cycle
 from tkinter import TclError
 from SkyGenerator import Process
 import System
+from PIL import Image, ImageEnhance
+from os import path
 
 class UpdateWindow:
     def __init__(self, create_btn=None):
@@ -64,8 +66,6 @@ class SkyImage(UpdateWindow):
     def create(self):
         try:
             processor = Process(image_details[0])
-            processor.InitializeImages()
-            pv, correct_pos, blend_width = processor.OutputValues(processor.inputImageSize, configs['output']['edge_blend'])
 
             def update_ui_progress(val):
                 try:
@@ -77,20 +77,32 @@ class SkyImage(UpdateWindow):
                     pass
 
             progress_action = System.Action[System.Double](update_ui_progress)
-            progress_value = processor.ConvertBack(pv, 1.0, configs['output']['curvature'], configs['output']['saturation'], progress_action)
-            save_merged = f"{tempdir}combined.png"
-            processor.SaveOutputImage(f"{tempdir}output_sky.png")
+            img_res = int(configs['output']['resolution'])
 
-            img_res = configs['output']['resolution']
-            remaining_progress = (100 - progress_value) / 12 + 0.01
-            progress_value = processor.ExportFaces(int(img_res), tempdir, remaining_progress, progress_value, progress_action)
-
-            merged_edges = processor.MergeSkyEdges(correct_pos, blend_width, tempdir, out_extension)
-            processor.SaveRgbaImage(merged_edges, save_merged)
+            java_sky_img = processor.ProcessSky(
+                lambda mode, size, color: Image.new(mode, tuple(size), tuple(color)),
+                lambda mode, size, data: Image.frombytes(mode, tuple(size), bytes(data), "raw", mode, 0, 1),
+                lambda p: Image.open(p),
+                lambda im, factor: ImageEnhance.Color(im).enhance(factor),
+                lambda im, box: im.crop(tuple(box)),
+                lambda im, size, res: im.resize(tuple(size), res),
+                lambda im, other, xy: im.paste(other, tuple(xy)),
+                hasattr(Image, 'Resampling'),
+                Image.Resampling.LANCZOS if hasattr(Image, 'Resampling') else None,
+                Image.ANTIALIAS if hasattr(Image, 'ANTIALIAS') else None,
+                image_details[0],
+                tempdir,
+                out_extension,
+                img_res,
+                configs['output']['edge_blend'],
+                configs['output']['curvature'],
+                configs['output']['saturation'],
+                configs['output'].get('rotate_top_bottom', True),
+                progress_action
+            )
 
             pack_builder = ResourcePackBuilder()
-            processor.CropMergedImage(pack_builder.old_names, save_merged, img_res, tempdir, configs['output'].get('rotate_top_bottom', True))
-            pack_builder.zip_mcpack_or_both(processor.MergeJavaSky(tempdir, pack_builder.old_names, processor.inputImageSize.Width // 4, processor.inputImageSize.Width // 4)).clean_up()
+            pack_builder.zip_mcpack_or_both(java_sky_img).clean_up()
         except IndexError:
             StatusMessage.get_image_error(self.progress_window)
 

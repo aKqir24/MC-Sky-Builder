@@ -1,125 +1,272 @@
 ﻿using System;
 using System.IO;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-
-/*
-
-    This Code Was Made By People From Stackoverflow
-    I Am To Lazy To Make These Kinds Of Hard Code
-    Since I'm Just A Beginer I Don't Know Many Maths.
-
-    Originally it was made in python, I ask AI to
-    convert it to C#, with the Image Sharp library
-    them tweaked some values to make it suite the
-    need of this progra.
-
-*/
 
 namespace SkyGenerator
 {
     public class Process
     {
         public string inputImage { get; set; }
-        public Image<Rgb24> outputImage { get; set; }
-        public Size inputImageSize { get; private set; }
-        public Size outputImageSize { get; private set; }
 
         public Process(string imagePath)
         {
             inputImage = imagePath;
-            outputImage = new Image<Rgb24>(Configuration.Default, 1, 1);
-            FillBlack(outputImage);
         }
 
-        public void InitializeImages()
+        public object ProcessSky(
+            object newImgObj,
+            object fromBytesObj,
+            object openImgObj,
+            object enhanceColorObj,
+            object cropImgObj,
+            object resizeImgObj,
+            object pasteImgObj,
+            bool hasResampling,
+            object lanczosResample,
+            object antialiasResample,
+            string imagePath,
+            string tempDir,
+            string outExtension,
+            int imgRes,
+            double edgeBlend,
+            double curvature,
+            double saturation,
+            bool rotateTopBottom,
+            object onProgressObj)
         {
-            using Image<Rgb24> imgIn = Image.Load<Rgb24>(inputImage);
-            inputImageSize = imgIn.Size;
-            outputImage = new Image<Rgb24>(Configuration.Default, inputImageSize.Width, (int)(inputImageSize.Width * 0.75));
-            FillBlack(outputImage);
-            outputImageSize = outputImage.Size;
-        }
+            dynamic newImg = newImgObj;
+            dynamic fromBytes = fromBytesObj;
+            dynamic openImg = openImgObj;
+            dynamic enhanceColor = enhanceColorObj;
+            dynamic cropImg = cropImgObj;
+            dynamic resizeImg = resizeImgObj;
+            dynamic pasteImg = pasteImgObj;
+            dynamic onProgress = onProgressObj;
 
-        private void FillBlack(Image<Rgb24> img) =>
-            img.ProcessPixelRows(acc => { for (int y = 0; y < acc.Height; y++) acc.GetRowSpan(y).Clear(); });
+            dynamic imgIn = openImg(imagePath);
+            imgIn = imgIn.convert("RGB");
+            if (saturation != 1.0)
+            {
+                imgIn = enhanceColor(imgIn, saturation);
+            }
 
-        public object[] OutputValues(Size inSize, double edgeBlend = 50.0)
-        {
-            double pv;
-            double edge = inSize.Width / 4.0;
-            int correctPosition = inSize.Width / 426; /*Width*/
+            int w = (int)imgIn.width;
+            int h = (int)imgIn.height;
+            int outputWidth = w;
+            int outputHeight = (int)(w * 0.75);
+
+            double edge = w / 4.0;
+            int correctPosition = (int)(w / 426.0);
             int blendWidth = (int)(edge * edgeBlend);
 
-            if (inSize.Width > inSize.Height)
-            {
-                pv = inSize.Width / 999999.0;
-            }
-            else
-            {
-                pv = inSize.Height / 999999.0;
-            }
+            double pv = w > h ? w / 999999.0 : h / 999999.0;
+            double currentPercent = 1.0;
 
-            return new object[] { pv, correctPosition, blendWidth };
-        }
+            byte[] inPixels = imgIn.tobytes();
+            byte[] outPixels = new byte[outputWidth * outputHeight * 3];
 
-        public double ConvertBack(double pv, double currentPercent, double curvature = 2.14, double saturation = 1.0, Action<double> onProgress = null)
-        {
-            double edge = inputImageSize.Width / 4.0;
             const double pi = Math.PI;
 
-            using Image<Rgb24> imgIn = Image.Load<Rgb24>(inputImage);
-            int w = imgIn.Width, h = imgIn.Height;
-            float saturationMultiplier = (float)saturation;
-            imgIn.Mutate(x => x.Saturate(saturationMultiplier));
-
-            outputImage.ProcessPixelRows(outAcc =>
+            for (int i = 0; i < outputWidth; i++)
             {
-                for (int i = 0; i < outputImageSize.Width; i++)
+                currentPercent += pv;
+                if (onProgress != null) onProgress(currentPercent);
+
+                int face = (int)(i / edge);
+                int jStart = face == 2 ? 0 : (int)edge;
+                int jEnd = face == 2 ? (int)(edge * 3) : (int)(edge * 2);
+
+                for (int j = jStart; j < jEnd; j++)
                 {
-                    currentPercent += pv;
-                    onProgress?.Invoke(currentPercent);
+                    int face2 = j < edge ? 4 : (j >= 2 * edge ? 5 : face);
+                    var (x, y, z) = OutImgToXYZ(i, j, face2, edge);
 
-                    int face = (int)(i / edge);
-                    int jStart = face == 2 ? 0 : (int)edge;
-                    int jEnd = face == 2 ? (int)(edge * 3) : (int)(edge * 2);
+                    double theta = Math.Atan2(y, x);
+                    double phi = Math.Atan2(z, Math.Sqrt(x * x + y * y));
 
-                    for (int j = jStart; j < jEnd; j++)
+                    double uf = 2 * edge * (theta + pi) / pi;
+                    double vf = curvature * edge * (pi / 1.869 - phi) / pi;
+
+                    int ui = (int)Math.Floor(uf), vi = (int)Math.Floor(vf);
+                    double mu = uf - ui, nu = vf - vi;
+
+                    int viClamped = Math.Clamp(vi, 0, h - 1);
+                    int viNextClamped = Math.Clamp(vi + 1, 0, h - 1);
+
+                    int u1 = (ui % w + w) % w;
+                    int u2 = ((ui + 1) % w + w) % w;
+
+                    int idxA = (viClamped * w + u1) * 3;
+                    int idxB = (viClamped * w + u2) * 3;
+                    int idxC = (viNextClamped * w + u1) * 3;
+                    int idxD = (viNextClamped * w + u2) * 3;
+
+                    byte ar = inPixels[idxA], ag = inPixels[idxA + 1], ab = inPixels[idxA + 2];
+                    byte br = inPixels[idxB], bg = inPixels[idxB + 1], bb = inPixels[idxB + 2];
+                    byte cr = inPixels[idxC], cg = inPixels[idxC + 1], cb = inPixels[idxC + 2];
+                    byte dr = inPixels[idxD], dg = inPixels[idxD + 1], db = inPixels[idxD + 2];
+
+                    int red = (int)Math.Clamp(Math.Round(ar * (1 - mu) * (1 - nu) + br * mu * (1 - nu) + cr * (1 - mu) * nu + dr * mu * nu), 0, 255);
+                    int green = (int)Math.Clamp(Math.Round(ag * (1 - mu) * (1 - nu) + bg * mu * (1 - nu) + cg * (1 - mu) * nu + dg * mu * nu), 0, 255);
+                    int blue = (int)Math.Clamp(Math.Round(ab * (1 - mu) * (1 - nu) + bb * mu * (1 - nu) + cb * (1 - mu) * nu + db * mu * nu), 0, 255);
+
+                    int outIdx = (j * outputWidth + i) * 3;
+                    outPixels[outIdx] = (byte)red;
+                    outPixels[outIdx + 1] = (byte)green;
+                    outPixels[outIdx + 2] = (byte)blue;
+                }
+            }
+
+            object[] sizeArgs = new object[] { outputWidth, outputHeight };
+            dynamic outputImage = fromBytes("RGB", sizeArgs, outPixels);
+            outputImage.save(Path.Combine(tempDir, "output_sky.png"));
+
+            string[,] nameMap = {
+                { "", "", "Top", "" },
+                { "Front", "Right", "Back", "Left" },
+                { "", "", "Bottom", "" }
+            };
+
+            double cubeSize = outputWidth / 4.0;
+            double remainingProgress = (100 - currentPercent) / 12 + 0.01;
+
+            for (int row = 0; row < 3; row++)
+            {
+                for (int col = 0; col < 4; col++)
+                {
+                    currentPercent += remainingProgress;
+                    if (onProgress != null) onProgress(currentPercent);
+
+                    string faceName = nameMap[row, col];
+                    if (!string.IsNullOrEmpty(faceName))
                     {
-                        int face2 = j < edge ? 4 : (j >= 2 * edge ? 5 : face);
-                        var (x, y, z) = OutImgToXYZ(i, j, face2, edge);
+                        int sx = (int)(cubeSize * col);
+                        int sy = (int)(cubeSize * row);
+                        int size = (int)cubeSize;
 
-                        double theta = Math.Atan2(y, x);
-                        double phi = Math.Atan2(z, Math.Sqrt(x * x + y * y));
+                        object[] cropBox = new object[] { sx, sy, sx + size, sy + size };
+                        dynamic cropped = cropImg(outputImage, cropBox);
+                        dynamic resample = hasResampling ? lanczosResample : antialiasResample;
+                        object[] resSize = new object[] { imgRes, imgRes };
+                        cropped = resizeImg(cropped, resSize, resample);
 
-                        double uf = 2 * edge * (theta + pi) / pi;
-                        double vf = curvature * edge * (pi / 1.869 - phi) / pi;
-
-                        int ui = (int)Math.Floor(uf), vi = (int)Math.Floor(vf);
-                        double mu = uf - ui, nu = vf - vi;
-
-                        int viClamped = Math.Clamp(vi, 0, h - 1);
-                        int viNextClamped = Math.Clamp(vi + 1, 0, h - 1);
-
-                        int u1 = (ui % w + w) % w;
-                        int u2 = ((ui + 1) % w + w) % w;
-
-                        Rgb24 a = imgIn[u1, viClamped];
-                        Rgb24 b = imgIn[u2, viClamped];
-                        Rgb24 c = imgIn[u1, viNextClamped];
-                        Rgb24 d = imgIn[u2, viNextClamped];
-
-                        outAcc.GetRowSpan(j)[i] = new Rgb24(
-                            (byte)Math.Clamp(Math.Round(a.R * (1 - mu) * (1 - nu) + b.R * mu * (1 - nu) + c.R * (1 - mu) * nu + d.R * mu * nu), 0, 255),
-                            (byte)Math.Clamp(Math.Round(a.G * (1 - mu) * (1 - nu) + b.G * mu * (1 - nu) + c.G * (1 - mu) * nu + d.G * mu * nu), 0, 255),
-                            (byte)Math.Clamp(Math.Round(a.B * (1 - mu) * (1 - nu) + b.B * mu * (1 - nu) + c.B * (1 - mu) * nu + d.B * mu * nu), 0, 255)
-                        );
+                        string filePath = Path.Combine(tempDir, faceName + ".png");
+                        if (File.Exists(filePath)) try { File.Delete(filePath); } catch (IOException) { }
+                        cropped.save(filePath);
                     }
                 }
-            });
+            }
 
-            return currentPercent;
+            dynamic topImg = openImg(Path.Combine(tempDir, "Top" + outExtension));
+            topImg = topImg.convert("RGBA");
+            topImg = topImg.rotate(180);
+
+            dynamic frontImg = openImg(Path.Combine(tempDir, "Front" + outExtension));
+            frontImg = frontImg.convert("RGBA");
+
+            dynamic bottomImg = openImg(Path.Combine(tempDir, "Bottom" + outExtension));
+            bottomImg = bottomImg.convert("RGBA");
+            bottomImg = bottomImg.rotate(180);
+
+            int th = (int)topImg.height, tw = (int)topImg.width;
+            object[] mrgSize = new object[] { tw, th * 3 };
+            object[] mrgColor = new object[] { 0, 0, 0, 0 };
+            dynamic mrg = newImg("RGBA", mrgSize, mrgColor);
+            pasteImg(mrg, topImg, new object[] { 0, 0 });
+            pasteImg(mrg, frontImg, new object[] { 0, th });
+            pasteImg(mrg, bottomImg, new object[] { 0, th * 2 });
+
+            object[] leftCrop = new object[] { 0, 0, tw / 2, th * 3 };
+            object[] rightCrop = new object[] { tw / 2, 0, tw, th * 3 };
+            dynamic left = cropImg(mrg, leftCrop);
+            dynamic right = cropImg(mrg, rightCrop);
+
+            dynamic combined = newImg("RGBA", mrgSize, mrgColor);
+            pasteImg(combined, left, new object[] { 0, 0 });
+            pasteImg(combined, right, new object[] { (int)left.width, 0 });
+
+            if (blendWidth > 0)
+            {
+                int leftWidth = (int)left.width;
+                int rightWidth = (int)right.width;
+                int combinedHeight = (int)combined.height;
+
+                byte[] leftPixels = left.tobytes();
+                byte[] rightPixels = right.tobytes();
+                byte[] combPixels = combined.tobytes();
+
+                for (int y = 0; y < combinedHeight; y++)
+                {
+                    for (int bw = 0; bw < blendWidth; bw++)
+                    {
+                        double alpha = blendWidth > 1 ? (double)bw / (blendWidth - 1) : 0;
+                        int x1 = Math.Clamp(leftWidth - blendWidth + bw, 0, leftWidth - 1);
+                        int x2 = Math.Clamp(blendWidth - 1 - bw, 0, rightWidth - 1);
+
+                        int p1Idx = (y * leftWidth + x1) * 4;
+                        int p2Idx = (y * rightWidth + x2) * 4;
+
+                        byte p1r = leftPixels[p1Idx], p1g = leftPixels[p1Idx + 1], p1b = leftPixels[p1Idx + 2], p1a = leftPixels[p1Idx + 3];
+                        byte p2r = rightPixels[p2Idx], p2g = rightPixels[p2Idx + 1], p2b = rightPixels[p2Idx + 2], p2a = rightPixels[p2Idx + 3];
+
+                        int destX = leftWidth - blendWidth + correctPosition + bw;
+                        if ((uint)destX < (uint)tw)
+                        {
+                            int r = (int)Math.Clamp(Math.Round((1 - alpha) * p1r + alpha * p2r), 0, 255);
+                            int g = (int)Math.Clamp(Math.Round((1 - alpha) * p1g + alpha * p2g), 0, 255);
+                            int b = (int)Math.Clamp(Math.Round((1 - alpha) * p1b + alpha * p2b), 0, 255);
+                            int a = (int)Math.Clamp(Math.Round((1 - alpha) * p1a + alpha * p2a), 0, 255);
+
+                            int combIdx = (y * tw + destX) * 4;
+                            combPixels[combIdx] = (byte)r;
+                            combPixels[combIdx + 1] = (byte)g;
+                            combPixels[combIdx + 2] = (byte)b;
+                            combPixels[combIdx + 3] = (byte)a;
+                        }
+                    }
+                }
+
+                combined = fromBytes("RGBA", mrgSize, combPixels);
+            }
+
+            string saveMerged = Path.Combine(tempDir, "combined.png");
+            combined.save(saveMerged);
+
+            dynamic mergedImage = openImg(saveMerged);
+            mergedImage = mergedImage.convert("RGBA");
+            int[] nameIndices = { 4, 2, 5 };
+            string[] oldNames = { "Back.png", "Left.png", "Front.png", "Right.png", "Top.png", "Bottom.png" };
+            for (int i = 0; i < 3; i++)
+            {
+                string path = Path.Combine(tempDir, oldNames[nameIndices[i]]);
+                if (File.Exists(path)) try { File.Delete(path); } catch (IOException) { }
+
+                object[] mergedCropBox = new object[] { 0, imgRes * i, imgRes, imgRes * (i + 1) };
+                dynamic cropped = cropImg(mergedImage, mergedCropBox);
+                if (i == 2 || (i == 0 && rotateTopBottom))
+                {
+                    cropped = cropped.rotate(180);
+                }
+                cropped.save(path);
+            }
+            if (File.Exists(saveMerged)) try { File.Delete(saveMerged); } catch (IOException) { }
+
+            int[] indices = { 5, 4, 0, 1, 2, 3 };
+            int javaWidth = outputWidth / 4;
+            int javaHeight = outputWidth / 4;
+            object[] javaCanvasSize = new object[] { javaWidth * 3, javaHeight * 2 };
+            object[] javaCanvasColor = new object[] { 0, 0, 0, 0 };
+            dynamic canvas = newImg("RGBA", javaCanvasSize, javaCanvasColor);
+            for (int i = 0; i < 6; i++)
+            {
+                int idx = indices[i];
+                dynamic imgFace = openImg(Path.Combine(tempDir, oldNames[idx]));
+                imgFace = imgFace.convert("RGBA");
+                int posX = (i < 3 ? i : i - 3) * javaWidth;
+                int posY = i < 3 ? 0 : javaHeight;
+                pasteImg(canvas, imgFace, new object[] { posX, posY });
+            }
+
+            return canvas;
         }
 
         private (double x, double y, double z) OutImgToXYZ(int i, int j, int face, double edge)
@@ -137,155 +284,9 @@ namespace SkyGenerator
             };
         }
 
-        public double ExportFaces(int imgRes, string tempDir, double pv, double currentPercent, Action<double> onProgress = null)
+        public static string GetImageFormat(string imagePath)
         {
-            string[,] nameMap = {
-                { "", "", "Top", "" },
-                { "Front", "Right", "Back", "Left" },
-                { "", "", "Bottom", "" }
-            };
-
-            double cubeSize = outputImageSize.Width / 4.0;
-
-            for (int row = 0; row < 3; row++)
-            {
-                for (int col = 0; col < 4; col++)
-                {
-                    currentPercent += pv;
-                    onProgress?.Invoke(currentPercent);
-
-                    string faceName = nameMap[row, col];
-                    if (!string.IsNullOrEmpty(faceName))
-                    {
-                        int sx = (int)(cubeSize * col);
-                        int sy = (int)(cubeSize * row);
-                        int size = (int)cubeSize;
-
-                        using var cropped = outputImage.Clone(x => x.Crop(new Rectangle(sx, sy, size, size)));
-                        cropped.Mutate(x => x.Resize(imgRes, imgRes));
-
-                        string filePath = tempDir + faceName + ".png";
-                        if (File.Exists(filePath)) try { File.Delete(filePath); } catch (IOException) { }
-                        cropped.Save(filePath);
-                    }
-                }
-            }
-
-            return currentPercent;
+            return Path.GetExtension(imagePath).TrimStart('.').ToLower();
         }
-
-        public Image<Rgba32> MergeSkyEdges(int correctPosition, int blendWidth, string tempDir, string outExtension)
-        {
-            using var top = Image.Load<Rgba32>(Path.Combine(tempDir, "Top" + outExtension));
-            top.Mutate(x => x.Rotate(180));
-            using var front = Image.Load<Rgba32>(Path.Combine(tempDir, "Front" + outExtension));
-            using var bottom = Image.Load<Rgba32>(Path.Combine(tempDir, "Bottom" + outExtension));
-            bottom.Mutate(x => x.Rotate(180));
-
-            int h = top.Height, w = top.Width;
-
-            // 1. To prepare the images for the game, a new file with dimensions of image.Width by image.Heightx3 should be created.
-            var mrg = new Image<Rgba32>(Configuration.Default, w, h * 3);
-
-            // 2. The top, bottom, and front images are dragged into the new file and arranged in a vertical pattern to align the cube map.
-            mrg.Mutate(x => { x.DrawImage(top, new Point(0, 0), 1f).DrawImage(front, new Point(0, h), 1f).DrawImage(bottom, new Point(0, h * 2), 1f); });
-
-            // 3. Because a visible line often appears where the images meet, a secondary file with dimensions of image.Width/2 by image.Heightx3 is created to help blend the textures.
-            using var left = mrg.Clone(x => x.Crop(new Rectangle(0, 0, w / 2, h * 3)));
-            using var right = mrg.Clone(x => x.Crop(new Rectangle(w / 2, 0, w / 2, h * 3)));
-
-            // 4. The images are copied and pasted into new layers, with a recommendation to prioritize the brighter side of the image to improve the visual blend.
-            var combined = new Image<Rgba32>(Configuration.Default, w, h * 3);
-
-            // 5. The original layer containing the visible line is deleted, and one of the copied layers is flipped horizontally and merged to create a seamless transition.
-            combined.Mutate(x => x.DrawImage(left, new Point(0, 0), 1f).DrawImage(right, new Point(left.Width, 0), 1f));
-
-            if (blendWidth > 0)
-            {
-                int leftWidth = left.Width;
-                int rightWidth = right.Width;
-                combined.ProcessPixelRows(acc =>
-                {
-                    // 6. To prepare the eraser tool for blending sky textures, set the hardness to the lowest level, disable anti-aliasing, and adjust the size to 500 which is the blend width.
-                    for (int y = 0; y < acc.Height; y++)
-                    {
-                        var row = acc.GetRowSpan(y);
-
-                        // 7. Erase the seam line between sky images by moving straight down or following a more natural, flowing pattern to improve the visual transition.
-                        for (int bw = 0; bw < blendWidth; bw++)
-                        {
-                            double alpha = (double)bw / (blendWidth - 1);
-                            int x1 = Math.Clamp(leftWidth - blendWidth + bw, 0, leftWidth - 1);
-                            int x2 = Math.Clamp(blendWidth - 1 - bw, 0, rightWidth - 1);
-
-                            Rgba32 p1 = left[x1, y];
-                            Rgba32 p2 = right[x2, y];
-
-                            int destX = leftWidth - blendWidth + correctPosition + bw;
-
-                            if ((uint)destX < (uint)acc.Width)
-                            {
-                                // 8. While some seams or points may remain visible during the editing process, if unwanted points or artifacts appear, create a new layer and use the dropper tool to select a base color, then use a paintbrush to blend the area; adjusting the opacity can further help the correction blend in.
-                                row[destX] = new Rgba32(
-                                    (byte)Math.Clamp(Math.Round((1 - alpha) * p1.R + alpha * p2.R), 0, 255),
-                                    (byte)Math.Clamp(Math.Round((1 - alpha) * p1.G + alpha * p2.G), 0, 255),
-                                    (byte)Math.Clamp(Math.Round((1 - alpha) * p1.B + alpha * p2.B), 0, 255),
-                                    (byte)Math.Clamp(Math.Round((1 - alpha) * p1.A + alpha * p2.A), 0, 255)
-                                );
-                            }
-                        }
-                    }
-                });
-            }
-            return combined;
-        }
-
-        public Image<Rgba32> MergeJavaSky(string tempDir, string[] oldNames, int width, int height)
-        {
-            int[] indices = { 5, 4, 0, 1, 2, 3 };
-            var canvas = new Image<Rgba32>(Configuration.Default, width * 3, height * 2);
-            canvas.Mutate(ctx =>
-            {
-                for (int i = 0; i < 6; i++)
-                {
-                    using var img = Image.Load<Rgba32>(Path.Combine(tempDir, oldNames[indices[i]]));
-                    ctx.DrawImage(img, new Point((i < 3 ? i : i - 3) * width, i < 3 ? 0 : height), 1f);
-                }
-            });
-            return canvas;
-        }
-
-        public void CropMergedImage(string[] oldNames, string mergedPath, int imgRes, string tempDir, bool rotateTopBottom = true)
-        {
-            using var image = Image.Load<Rgba32>(mergedPath);
-            int[] nameIndices = { 4, 2, 5 };
-            for (int i = 0; i < 3; i++)
-            {
-                string path = tempDir + oldNames[nameIndices[i]];
-                if (File.Exists(path)) try { File.Delete(path); } catch (IOException) { }
-
-                using var cropped = image.Clone(x => x.Crop(new Rectangle(0, imgRes * i, imgRes, imgRes)));
-                if (i == 2 || (i == 0 && rotateTopBottom))
-                {
-                    cropped.Mutate(x => x.Rotate(180));
-                }
-                cropped.Save(path);
-            }
-            if (File.Exists(mergedPath)) try { File.Delete(mergedPath); } catch (IOException) { }
-        }
-
-        public void SaveOutputImage(string path)
-        {
-            outputImage.Save(path);
-        }
-
-        public void SaveRgbaImage(Image<Rgba32> img, string path)
-        {
-            img.Save(path);
-            img.Dispose();
-        }
-
-        public static string GetImageFormat(string imagePath) =>
-            Image.Identify(imagePath)?.Metadata.DecodedImageFormat?.Name.ToLower() ?? "unknown";
     }
 }
