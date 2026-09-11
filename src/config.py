@@ -27,7 +27,7 @@ def _init_platform():
         return cfg_folder, opener, desktop
 
     elif os.name == "posix":
-        cfg_folder = home / ".mcskymaker"
+        cfg_folder = home / ".local/share/.mcskymaker"
         opener = lambda folder: subprocess.Popen(["xdg-open", folder])
         desktop = home / "Desktop"
         if not desktop.exists():
